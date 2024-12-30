@@ -6,12 +6,6 @@ st.set_page_config(
     page_icon="🗿",
 )
 
-# Initializing session state variables if they don't exist
-if 'clients' not in st.session_state:
-    st.session_state.clients = []  # List to store client names
-if 'projects' not in st.session_state:
-    st.session_state.projects = {}  # Dictionary to store projects for each client
-
 # Sidebar - Main menu
 with st.sidebar:
     st.header("EasyManage")
