@@ -16,22 +16,22 @@ if 'projects' not in st.session_state:
 with st.sidebar:
     st.header("EasyManage")
 
-    # Clients dropdown
+    # clients dropdown
+    #i asked chatgpt for help with this part is it fine? (i understand what it means tho)
     client_select = st.selectbox("Add a client", ["-- Add a client --"] + st.session_state.clients)
 
-    if client_select != "-- Add a client --":
-        # Client-specific dropdown to select a project for the selected client
+    #drop down for each client and project
+    if client_select != "-- Add a client --": 
         if client_select in st.session_state.projects and st.session_state.projects[client_select]:
-            project_select = st.selectbox(f"Add a project under {client_select}", ["-- Add a project --"] + st.session_state.projects[client_select])
+            project_select = st.selectbox(f"Add a project under {client_select}", ["-- Add a project --"] + st.session_state.projects[client_select]) 
         else:
             project_select = None
             st.write(f"No projects available for {client_select}.")
 
-# Home page - For adding clients
+#home page(adding clients)
 if client_select == "-- Add a client --":
     st.title("Welcome to EasyManage!")
 
-    # Adding a client
     client_name = st.text_input("Enter the name of the client")
     billing_rate = st.text_input("Add hourly billing rate with this client")
 
@@ -44,24 +44,24 @@ if client_select == "-- Add a client --":
                 st.error("Billing rate should be a positive integer value")
         if client_name and billing_rate:
             st.session_state.clients.append(client_name)
-            st.session_state.projects[client_name] = []  # Initialize an empty list of projects for the client
-            st.success(f"Client '{client_name}' added!")
+            st.session_state.projects[client_name] = []  #creating a projects list for that specific client (will be useful later for diff tabs)
+            st.success(f"Client {client_name} added!")
         else:
             st.error("Please enter both a client name and a billing rate.")
 
-# Client-specific page (for each client)
+# diff page for each client
 if client_select != "-- Add a client --":
     st.title(f"Projects for {client_select}")
 
-    # Add project
+    # adding projcet
     project_name = st.text_input(f"Enter the name of the project for {client_select}")
     add_project_button = st.button(f"Add Project for {client_select}")
 
     if add_project_button and project_name:
-        st.session_state.projects[client_select].append(project_name)  # Add the project to the client's list
-        st.success(f"Added project '{project_name}' for client '{client_select}'!")
+        st.session_state.projects[client_select].append(project_name) 
+        st.success(f"Added project {project_name} for client {client_select}!")
 
-    # Display the list of projects for the selected client
+    # display projects for that selected client
     if st.session_state.projects[client_select]:
         st.write("Projects:")
         for project in st.session_state.projects[client_select]:
