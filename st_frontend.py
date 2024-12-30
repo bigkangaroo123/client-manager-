@@ -1,43 +1,70 @@
 import streamlit as st
 
+# Setting up the page configuration
 st.set_page_config(
     page_title="EasyManage",
     page_icon="🗿",
 )
-st.sidebar.success("Select a page above")
 
-#initializing variables is they dont exist
+# Initializing session state variables if they don't exist
 if 'clients' not in st.session_state:
-    st.session_state.clients = [] #list that stores clients
-if 'project' not in st.session_state:
-    st.session_state.projects = {}
-if 'current_page' not in st.session_state:
-    st.session_state.page = 'Home' #a variable that tracks the current page
+    st.session_state.clients = []  # List to store client names
+if 'projects' not in st.session_state:
+    st.session_state.projects = {}  # Dictionary to store projects for each client
 
-#if the page we are on is home:
-if st.session_state.page == 'Home':
-    st.title("EasyManage")
-    st.write("This is a user-friendly client manager.")
+# Sidebar - Main menu
+with st.sidebar:
+    st.header("EasyManage")
 
-    #adding a client:
+    # Clients dropdown
+    client_select = st.selectbox("Add a client", ["-- Add a client --"] + st.session_state.clients)
+
+    if client_select != "-- Add a client --":
+        # Client-specific dropdown to select a project for the selected client
+        if client_select in st.session_state.projects and st.session_state.projects[client_select]:
+            project_select = st.selectbox(f"Add a project under {client_select}", ["-- Add a project --"] + st.session_state.projects[client_select])
+        else:
+            project_select = None
+            st.write(f"No projects available for {client_select}.")
+
+# Home page - For adding clients
+if client_select == "-- Add a client --":
+    st.title("Welcome to EasyManage!")
+
+    # Adding a client
     client_name = st.text_input("Enter the name of the client")
+    billing_rate = st.text_input("Add hourly billing rate with this client")
 
-    #creating button to add the lcient:
     add_client_button = st.button("Add Client")
-    if not client_name and add_client_button:
-        st.error("Please enter a valid client name")
-    elif client_name and add_client_button:
-        st.session_state.clients.append(client_name)
-        st.success(f"Client {client_name} added!")
-    
-    #clients as buttons that lead to a diff tab for each client
-    if st.session_state.clients:
-        st.write("Click on a client to see their projects:")
-        for client in st.session_state.clients:
-            if st.button(client):
-                st.session_state.selected_client = client
-                st.session_state.page = client  # change page to the selected client's name. i did this but idk how to open a whole different page when I click a client
 
+    if add_client_button:
+        if client_name:
+            billing_rate = int(billing_rate)
+            if billing_rate <= 0:
+                st.error("Billing rate should be a positive integer value")
+        if client_name and billing_rate:
+            st.session_state.clients.append(client_name)
+            st.session_state.projects[client_name] = []  # Initialize an empty list of projects for the client
+            st.success(f"Client '{client_name}' added!")
+        else:
+            st.error("Please enter both a client name and a billing rate.")
 
+# Client-specific page (for each client)
+if client_select != "-- Add a client --":
+    st.title(f"Projects for {client_select}")
 
+    # Add project
+    project_name = st.text_input(f"Enter the name of the project for {client_select}")
+    add_project_button = st.button(f"Add Project for {client_select}")
 
+    if add_project_button and project_name:
+        st.session_state.projects[client_select].append(project_name)  # Add the project to the client's list
+        st.success(f"Added project '{project_name}' for client '{client_select}'!")
+
+    # Display the list of projects for the selected client
+    if st.session_state.projects[client_select]:
+        st.write("Projects:")
+        for project in st.session_state.projects[client_select]:
+            st.write(f"- {project}")
+    else:
+        st.write(f"No projects yet for {client_select}.")
