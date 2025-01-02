@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import streamlit as st
 
 st.set_page_config(
@@ -21,26 +20,3 @@ st.markdown(
     Navigate through the different pages using the side bar!
 """
 )
-=======
-import streamlit as st
-from pages import insertion, viewing
-from streamlit_extras.switch_page_button import switch_page
-
-st.set_page_config(
-    page_title="EasyManage", 
-    page_icon="🗿"
-)
-
-st.sidebar.success("Select a tab above")
-
-st.title(" # Welcome to EasyManage! 🗿 ")
-
-add_clients = st.button("Click to add clients")
-view_clients = st.button("Click to view clients")
-
-if add_clients:
-    switch_page(insertion)
-
-if view_clients:
-    switch_page(viewing)
->>>>>>> 82a7b8034ee932020eb8626624fcf43d299eac17
