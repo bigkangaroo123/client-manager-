@@ -53,9 +53,9 @@ if 'clients' not in st.session_state:
     st.session_state.clients = []  
 
 if st.session_state.clients:
-    for idx, client in enumerate(st.session_state.clients):
-        # 'idx' is the index of each client
-        # 'client' is the dictionary containing the client's details.
+    #for loop iterating over the cient
+    for client in enumerate(st.session_state.clients):
+        #'client' is a dictionary
 
         if "projects" not in client:
             client["projects"] = []
