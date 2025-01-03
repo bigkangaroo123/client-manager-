@@ -5,18 +5,21 @@ st.set_page_config(
     page_icon="🗿"
 )
 
-st.title("Welcome to EasyManage! :D")
+st.title("🌟 Welcome to **EasyManage**! 🌟")
 
 st.markdown(
     """
-    EasyManage is an efficient and easy way to manage your clients and their projects
-    You have the ability to:
+    EasyManage is your efficient and easy-to-use solution for managing clients and projects.  
 
-    - Add all your clients
-    - Add all the projects you have with your clients
-    - Make a personal note for yourself of the tasks required to complete each task, with a personal deadline feature (not required)
-    - Keep track of the hours you spent doing each task, which will add up and calculate how much money you made from that project
+    #### Here's what you can do:  
+    - 🧑‍💼 **Add all your clients**  
 
-    Navigate through the different pages using the side bar!
-"""
+    - 📂 **Add all the projects** you have with your clients  
+
+    - 📝 **Make personal notes** for tasks, including an optional **deadline feature**  
+    
+    - ⏳ **Track hours spent** on tasks to calculate **earnings** from each project  
+
+    💡 Use the **sidebar** to navigate through the different pages and explore all features!  
+    """
 )
