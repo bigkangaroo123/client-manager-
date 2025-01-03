@@ -12,7 +12,7 @@ else:
     for client in st.session_state.clients:
         client_names = client['name']
 
-    selected_client_name = st.sidebar.selectbox("Select a client", ["All Clients"] + client_names)
+    selected_client_name = st.sidebar.selectbox("Select a client", ["All Clients"], + client_names)
 
     if selected_client_name != "All Clients": #if a client is selected:
         selected_client = None
