@@ -39,6 +39,8 @@ def task_table(client_name, project_name):
             task['notes'] = columns[3].text_input("Notes", value=task['notes'], key=f"notes_task_{i}")
 
 #-------------- main viewing manu ----------------
+selected_client = None
+
 if 'clients' not in st.session_state or not st.session_state.clients:
     st.warning("No clients available. Add some clients first!")
 else:
@@ -51,7 +53,6 @@ else:
     selected_client_name = st.selectbox("Select a client", ["All Clients"] + client_names)
 
     if selected_client_name != "All Clients":
-        selected_client = None
         for client in st.session_state.clients:
             if client['name'] == selected_client_name:
                 selected_client = client
