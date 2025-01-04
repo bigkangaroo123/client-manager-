@@ -20,6 +20,12 @@ st.markdown(
 
     - ⏳ **Track hours spent** on tasks to calculate **earnings** from each project  
 
-    💡 Use the **sidebar** to navigate through the different pages and explore all features!  
+    - 🗑️ To **delete any information** you input, click on the three dots beside the client or project on the viewing tab and then select **"Delete"**  
+        - To **delete a task**, simply click the trash icon beside the row of that task
+        
+    - 🌗 To toggle between **Light mode and Dark mode**, select one of the option on bottom right on the tab!
+
+    💡 Use the **sidebar** to navigate through the different pages!  
     """
+    #subpoint for the delete point aint working properly --- ask mr park
 )
