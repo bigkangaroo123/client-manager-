@@ -3,13 +3,10 @@ import streamlit as st
 st.title("View Clients")
 
 #-------------- task table -----------------
-'''
-1st column: task name
-2nd: deadline
-3rd: checkbox
-4th: notes
-'''
-
+# 1st column: task name
+# 2nd: deadline
+# 3rd: checkbox
+# 4th: notes
  
 if 'tasks' not in st.session_state:
     st.session_state.tasks = []
