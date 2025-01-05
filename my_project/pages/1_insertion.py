@@ -21,9 +21,6 @@ add_client_button = st.button("Add Client", key="add_client_button")
 
 
 if add_client_button:
-    client_name = st.session_state.client_name
-    billing_rate = st.session_state.billing_rate
-
     if not client_name:
         st.error("Please input the client's name to proceed...")
     elif not billing_rate:
@@ -34,9 +31,15 @@ if add_client_button:
             if billing_rate <= 0:
                 st.error("Please enter a positive integer for the billing rate.")
             else:
-                st.session_state.clients.append({"name": client_name, "rate": billing_rate})
+                client =  {
+                    'name' : client_name,
+                    'rate' : billing_rate,
+                    'projects' : []
+                }
+                st.session_state.clients.append(client)
                 st.success(f"Client '{client_name}' with rate ${billing_rate}/hour added!")
-                reset_cinput()  
+                reset_cinput()
+
         except ValueError:
             st.error("Please enter a valid integer for the billing rate.")
 
@@ -47,11 +50,7 @@ st.title("Add a project:")
 def reset_pinput(): #resetting project input field
     st.session_state.project_name.reset
 
-if 'clients' not in st.session_state:
-    st.session_state.clients = []
-
 if st.session_state.clients:
-    # Dropdown to select which client to add a project to
     client_names = []
     for client in st.session_state.clients:
         client_names.append(client["name"])
@@ -63,14 +62,7 @@ if st.session_state.clients:
     for client in st.session_state.clients:
         if client['name'] == selected_client_name:
             selected_client = client
-            break  # Stop once the client is found
-
-    if selected_client:
-        if 'projects' not in selected_client:
-            selected_client['projects'] = []
-
-    if 'project_name' not in st.session_state:
-            st.session_state.project_name = ""
+            break
 
     project_name = st.text_input("Enter the name of the project:", placeholder="Type project's name here")
     add_project_button = st.button("Add Project")

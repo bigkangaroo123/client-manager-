@@ -101,9 +101,7 @@ def archive():
                         selected_client["projects"].remove(project_name)
 
                         st.success(f"Project '{project_name}' has been archived!")
-
-                        if not selected_client["projects"]:
-                            st.warning("No projects available for the selected client.")
+                        
                 else:
                     st.warning("No projects available for the selected client.")
 
@@ -158,8 +156,7 @@ def archive():
                                 st.success(f"Project '{selected_project_name}' has been unarchived and restored to client '{selected_client_name}'!")
 
 def delete():
-    pass  # You can implement this as needed.
-
+    pass  
 if selected == "Edit":
     edit()
 
