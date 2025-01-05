@@ -2,6 +2,10 @@ import streamlit as st
 
 st.title("Add a client:")
 
+def reset_cinput(): #reset "add client" input fields
+    st.session_state.client_name.reset
+    st.session_state.billing_rate.reset
+
 if 'clients' not in st.session_state:
     st.session_state.clients = [] 
 if 'client_name' not in st.session_state:
@@ -10,19 +14,21 @@ if 'billing_rate' not in st.session_state:
     st.session_state.billing_rate = ''
 
 
-client_name = st.text_input("Enter the name of the client:", key="client_name", value=st.session_state.client_name)
-billing_rate = st.text_input("Add hourly billing rate with this client", key="billing_rate", value=st.session_state.billing_rate)
+client_name = st.text_input("Enter the name of the client:", key="client_name", placeholder="Type client's name here")
+billing_rate = st.text_input("Add hourly billing rate with this client", key="billing_rate", placeholder="Type billing rate here")
 
 add_client_button = st.button("Add Client", key="add_client_button")
 
 
 if add_client_button:
+    client_name = st.session_state.client_name
+    billing_rate = st.session_state.billing_rate
+
     if not client_name:
         st.error("Please input the client's name to proceed...")
     elif not billing_rate:
         st.error("Please also input the billing rate to proceed...")
     else:
-        #chat gpt suggested the "try" method
         try:
             billing_rate = int(billing_rate)
             if billing_rate <= 0:
@@ -30,6 +36,7 @@ if add_client_button:
             else:
                 st.session_state.clients.append({"name": client_name, "rate": billing_rate})
                 st.success(f"Client '{client_name}' with rate ${billing_rate}/hour added!")
+                reset_cinput()  
         except ValueError:
             st.error("Please enter a valid integer for the billing rate.")
 
@@ -37,12 +44,18 @@ if add_client_button:
 
 st.title("Add a project:")
 
+def reset_pinput(): #resetting project input field
+    st.session_state.project_name.reset
+
 if 'clients' not in st.session_state:
     st.session_state.clients = []
 
 if st.session_state.clients:
     # Dropdown to select which client to add a project to
-    client_names = [client['name'] for client in st.session_state.clients]
+    client_names = []
+    for client in st.session_state.clients:
+        client_names.append(client["name"])
+
     selected_client_name = st.selectbox("Select a client", client_names)
 
     selected_client = None
@@ -55,15 +68,19 @@ if st.session_state.clients:
     if selected_client:
         if 'projects' not in selected_client:
             selected_client['projects'] = []
-        
-        project_name = st.text_input("Enter the name of the project:")
-        add_project_button = st.button("Add Project")
-        
-        if add_project_button:
-            if project_name and project_name not in selected_client['projects']:
-                selected_client['projects'].append(project_name)
-                st.success(f"Project '{project_name}' added to {selected_client_name}!")
-            else:
-                st.error("Please enter a valid project name that doesn't already exist.")
+
+    if 'project_name' not in st.session_state:
+            st.session_state.project_name = ""
+
+    project_name = st.text_input("Enter the name of the project:", placeholder="Type project's name here")
+    add_project_button = st.button("Add Project")
+    
+    if add_project_button:
+        if project_name and project_name not in selected_client['projects']:
+            selected_client['projects'].append(project_name)
+            st.success(f"Project '{project_name}' added to {selected_client_name}!")
+            reset_pinput()
+        else:
+            st.error("Please enter a valid project name that doesn't already exist.")
 else:
     st.write("No clients available. Add a client first.")

@@ -1,7 +1,5 @@
 import streamlit as st
 
-st.title("View Clients")
-
 #-------------- task table -----------------
 # 1st column: task name
 # 2nd: deadline
