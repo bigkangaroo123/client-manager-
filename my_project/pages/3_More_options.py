@@ -3,19 +3,16 @@ from streamlit_option_menu import option_menu
 
 
 selected = option_menu(
-        menu_title="More Options",
-        options=["Edit", "Archive", "Delete"],
-        orientation="horizontal",
+    menu_title="More Options",
+    options=["Edit", "Archive", "Delete"],
+    orientation="horizontal",
 )
-def edit(): #editing a client
+
+def edit():  # editing a client
     if 'clients' not in st.session_state or not st.session_state.clients:
         st.warning("No clients or projects available. Add some first!")
-
     else:
-        client_names = []
-        for client in st.session_state.clients:
-            client_names.append(client['name'])
-        
+        client_names = [client['name'] for client in st.session_state.clients]
         selected_client_name = st.selectbox("Select a client to edit", client_names)
 
         selected_client = None
@@ -61,36 +58,29 @@ def archive():
     if 'clients' not in st.session_state or not st.session_state.clients:
         st.warning("No clients or projects available. Add some first!")
 
-    if not st.session_state.archived_clients:
+    if 'archived_clients' not in st.session_state:
         st.session_state.archived_clients = []
 
-    if not st.session_state.archived_projects:
-        st.session_state.archived_projects = {} #it will be stored as client: projects
-    
+    if 'archived_projects' not in st.session_state:
+        st.session_state.archived_projects = {}  # it will be stored as client: projects
     else:
         st.subheader("Archive / Unarchive Options")
-        
+
         action_type = st.radio("What would you like to do?", ("Archive", "Unarchive"))
-        
+
         if action_type == "Archive":
             archive_type = st.radio("What would you like to archive?", ("Client", "Project"))
-            
-            if archive_type == "Client":
-                client_names = []
-                for client in st.session_state.clients:
-                    client_names.append(client['name'])
 
+            if archive_type == "Client":
+                client_names = [client['name'] for client in st.session_state.clients]
                 selected_client_name = st.selectbox("Select a client to archive", client_names)
 
                 if st.button(f"Archive Client '{selected_client_name}'"):
                     st.session_state.archived_clients.append(selected_client_name)
-                    st.session_state.clients.remove(selected_client_name)
+                    st.session_state.clients = [client for client in st.session_state.clients if client['name'] != selected_client_name]
 
             elif archive_type == "Project":
-                client_names = []
-                for client in st.session_state.clients:
-                    client_names.append(client['name'])
-
+                client_names = [client['name'] for client in st.session_state.clients]
                 selected_client_name = st.selectbox("Select a client", client_names)
 
                 selected_client = None
@@ -108,7 +98,6 @@ def archive():
                             st.session_state.archived_projects[selected_client_name] = []
 
                         st.session_state.archived_projects[selected_client_name].append(project_name)
-
                         selected_client["projects"].remove(project_name)
 
                         st.success(f"Project '{project_name}' has been archived!")
@@ -117,34 +106,65 @@ def archive():
                             st.warning("No projects available for the selected client.")
                 else:
                     st.warning("No projects available for the selected client.")
-        
+
         elif action_type == "Unarchive":
             unarchive_type = st.radio("What would you like to unarchive?", ("Client", "Project"))
 
             if unarchive_type == "Client":
                 if not st.session_state.archived_clients:
                     st.warning("No clients are archived")
-
                 else:
-                    archived_client_names = list(st.session_state.archived_clients.keys())
+                    archived_client_names = st.session_state.archived_clients
                     selected_client_name = st.selectbox("Select a client to unarchive", archived_client_names)
 
                     if selected_client_name:
                         if st.button(f"Unarchive Client '{selected_client_name}'"):
-                            # using .pop because it removes and retrives all the info of the client
-                            archived_client = st.session_state.archived_clients.pop(selected_client_name)
-                            
-                            st.session_state.clients.append(archived_client)
-                            
-                            for project in archived_client["projects"]: #each client would be archived with it's projects
-                                project["archived"] = False  # Reset project archived status
+                            archived_client = st.session_state.archived_clients.pop(st.session_state.archived_clients.index(selected_client_name))
+                            st.session_state.clients.append({'name': archived_client, 'projects': []})  # Add back with empty projects list (adjust accordingly)
 
-                            st.success(f"Client '{selected_client_name}' and its projects have been unarchived!")
+                            st.success(f"Client '{selected_client_name}' has been unarchived!")
 
+            elif unarchive_type == "Project":
+                if not st.session_state.archived_projects:
+                    st.warning("No archived projects")
+                else:
+                    archived_project_names = []
+                    for client_name, projects in st.session_state.archived_projects.items():
+                        for project in projects:
+                            archived_project_names.append((client_name, project))
 
+                    selected_client_name, selected_project_name = st.selectbox(
+                        "Select a project to unarchive", archived_project_names, format_func=lambda x: f"{x[0]} - {x[1]}"
+                        #format function:
+                        #x is a tuple of (client name, project name)
+                        #it will be displayed like that
+                    )
+
+                    if selected_client_name and selected_project_name:
+                        if st.button(f"Unarchive Project '{selected_project_name}'"):
+                            if selected_client_name in st.session_state.archived_clients:
+                                st.warning(f"Client '{selected_client_name}' is archived. Please unarchive the client first.")
+                            else:
+                                st.session_state.archived_projects[selected_client_name].remove(selected_project_name)
+
+                                if not st.session_state.archived_projects[selected_client_name]:
+                                    del st.session_state.archived_projects[selected_client_name]
+
+                                for client in st.session_state.clients:
+                                    if client["name"] == selected_client_name:
+                                        client["projects"].append(selected_project_name)
+                                        break
+
+                                st.success(f"Project '{selected_project_name}' has been unarchived and restored to client '{selected_client_name}'!")
+
+def delete():
+    pass  # You can implement this as needed.
 
 if selected == "Edit":
     edit()
 
 if selected == "Archive":
     archive()
+
+if selected == "Delete":
+    delete()
