@@ -192,7 +192,6 @@ def delete():
                 selected_client["projects"].remove(project_name)
                 st.success(f"Project: {project_name} for Client: {selected_client_name} successfully deleted.")
 
-
 if selected == "Edit":
     edit()
 
