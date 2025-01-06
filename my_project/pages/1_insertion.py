@@ -2,10 +2,6 @@ import streamlit as st
 
 st.title("Add a client:")
 
-def reset_cinput(): #reset "add client" input fields
-    st.session_state.client_name.reset
-    st.session_state.billing_rate.reset
-
 if 'clients' not in st.session_state:
     st.session_state.clients = [] 
 if 'client_name' not in st.session_state:
@@ -38,7 +34,6 @@ if add_client_button:
                 }
                 st.session_state.clients.append(client)
                 st.success(f"Client '{client_name}' with rate ${billing_rate}/hour added!")
-                reset_cinput()
 
         except ValueError:
             st.error("Please enter a valid integer for the billing rate.")
@@ -46,9 +41,6 @@ if add_client_button:
 # ---------- Add project section: -------------
 
 st.title("Add a project:")
-
-def reset_pinput(): #resetting project input field
-    st.session_state.project_name.reset
 
 if st.session_state.clients:
     client_names = []
@@ -71,7 +63,6 @@ if st.session_state.clients:
         if project_name and project_name not in selected_client['projects']:
             selected_client['projects'].append(project_name)
             st.success(f"Project '{project_name}' added to {selected_client_name}!")
-            reset_pinput()
         else:
             st.error("Please enter a valid project name that doesn't already exist.")
 else:
