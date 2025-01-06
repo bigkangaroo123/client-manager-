@@ -26,7 +26,7 @@ def task_table(client_name, project_name):
 
     if st.session_state.tasks:
         for i, task in enumerate(st.session_state.tasks):
-            columns = st.columns([3, 3, 2, 3]) #column ratios (1 is checkbox)
+            columns = st.columns([3, 3, 2, 3])
 
             #the 4 columns:
             task['task_name'] = columns[0].text_input("Task Name", value=task['task_name'], key=f"task_name_{i}")
