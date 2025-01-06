@@ -4,7 +4,7 @@ from streamlit_option_menu import option_menu
 
 selected = option_menu(
     menu_title="More Options",
-    options=["Edit", "Archive", "Delete"],
+    options=["✏️Edit", "📦Archive", "🗑️Delete"],
     orientation="horizontal",
 )
 
