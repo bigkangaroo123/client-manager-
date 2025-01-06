@@ -11,12 +11,13 @@ if 'tasks' not in st.session_state:
     st.session_state.tasks = []
 
 def add_task():
-    st.session_state.tasks.append({
+    task = {
         'task_name' : '',
         'deadline' : None,
         'complete' : False, 
         'notes' : ''
-    })
+    }
+ st.session_state.tasks.append(task)
 
 def task_table(client_name, project_name):
     st.subheader(f"📋 Task Table for {project_name} under {client_name}")
