@@ -159,7 +159,38 @@ def archive():
                                 
 # ---------- deleting -------------
 def delete():
-    pass
+    if 'clients' not in st.session_state or not st.session_state.clients:
+        st.warning("No clients or projects available. Add some first!")
+
+    action_type = st.radio("What would you like to delete?", ("Client", "Project"))
+
+    if action_type == "Client":
+        client_names = [client['name'] for client in st.session_state.clients]
+        selected_client_name = st.selectbox("Select a client to delete", client_names)
+    
+        if selected_client_name:
+            #ask mr park how to add the "do u really want to permanantly delete this client"
+            st.session_state.clients.remove(selected_client_name)
+            st.success(f"Client: {selected_client_name} has been successfully deleted.")
+
+    elif action_type == "Project":
+        client_names = [client['name'] for client in st.session_state.clients]
+        selected_client_name = st.selectbox("Select a client to delete", client_names)
+
+        selected_client = None
+        if selected_client_name != "All Clients":
+            for client in st.session_state.clients:
+                if client['name'] == selected_client_name:
+                    selected_client = client
+                    break
+
+        if selected_client and "projects" in selected_client and selected_client["projects"]:
+            project_name = st.selectbox("Select a project to delete", selected_client["projects"])
+
+            if st.button("Delete project"):
+                #the warning again
+                selected_client["projects"].remove(project_name)
+                st.success(f"Project: {project_name} for Client: {selected_client_name} successfully deleted.")
 
 
 if selected == "Edit":
