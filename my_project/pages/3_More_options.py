@@ -8,7 +8,8 @@ selected = option_menu(
     orientation="horizontal",
 )
 
-def edit():  # editing a client
+# ---------- editing-------------
+def edit(): 
     if 'clients' not in st.session_state or not st.session_state.clients:
         st.warning("No clients or projects available. Add some first!")
     else:
@@ -53,7 +54,8 @@ def edit():  # editing a client
                         st.success(f"Project name updated to '{new_project_name}'!")
                     else:
                         st.error("Please enter a valid and different project name.")
-
+                        
+# ---------- archiving / unarchiving -------------
 def archive():
     if 'clients' not in st.session_state or not st.session_state.clients:
         st.warning("No clients or projects available. Add some first!")
@@ -133,7 +135,7 @@ def archive():
 
                     selected_client_name, selected_project_name = st.selectbox(
                         "Select a project to unarchive", archived_project_names, format_func=lambda x: f"{x[0]} - {x[1]}"
-                        #format function:
+                        #format_func:
                         #x is a tuple of (client name, project name)
                         #it will be displayed like that
                     )
@@ -154,9 +156,12 @@ def archive():
                                         break
 
                                 st.success(f"Project '{selected_project_name}' has been unarchived and restored to client '{selected_client_name}'!")
-
+                                
+# ---------- deleting -------------
 def delete():
-    pass  
+    pass
+
+
 if selected == "Edit":
     edit()
 
