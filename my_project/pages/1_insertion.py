@@ -29,9 +29,9 @@ if add_client_button:
             st.error("Please enter a positive integer for thhe billing rate")
         else:
             client = {
-                'name' = client_name
-                'rate' = billing_rate
-                'projects' = []
+                'name' : client_name,
+                'rate' : billing_rate,
+                'projects' : []
             }
             st.session_state.clients.append(client)
             st.success(f"Client {client_name} with hourly rate of ${billing_rate} added!")
