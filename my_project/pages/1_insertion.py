@@ -10,8 +10,8 @@ if 'billing_rate' not in st.session_state:
 # ---------- Add client section: -------------
 st.title(" ➕🤝 Add a client:")
 
-client_name = st.text_input("Enter the name of the client:", value="", key="client_name", placeholder="Type client's name here") #value change (try resetting input field)
-billing_rate = st.text_input("Add hourly billing rate with this client", value="", key="billing_rate", placeholder="Type billing rate here") 
+client_name = st.text_input("Enter the name of the client:", key="client_name", placeholder="Type client's name here") #value change (try resetting input field)
+billing_rate = st.text_input("Add hourly billing rate with this client", key="billing_rate", placeholder="Type billing rate here", min_value=1, step=1) 
 
 add_client_button = st.button("Add Client", key="add_client_button")
 
