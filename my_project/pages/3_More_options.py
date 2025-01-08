@@ -169,9 +169,22 @@ def delete():
         selected_client_name = st.selectbox("Select a client to delete", client_names)
     
         if selected_client_name:
-            #ask mr park how to add the "do u really want to permanantly delete this client"
-            st.session_state.clients.remove(selected_client_name)
-            st.success(f"Client: {selected_client_name} has been successfully deleted.")
+            if st.button("Delete Client")
+                st.warning("Are you sure you want to permanantly delete this client?")
+                confirm_delete = st.radio("Choose an option: ", ("No", "Yes"))
+    
+                if confirm_delete == "Yes":
+                    selected_client = None
+                    for client in st.session_state.clients:
+                        if client['name'] == selected_client_name:
+                            selected_client = client
+                            break
+                    st.session_state.clients.remove(selected_client)
+                    st.success(f"Client {selected_client_name} has been deleted")
+    
+                elif confirm_delete == "No":
+                    st.success(f"Client deletion cancelled")
+            
 
     elif action_type == "Project":
         client_names = [client['name'] for client in st.session_state.clients]
@@ -188,7 +201,7 @@ def delete():
             project_name = st.selectbox("Select a project to delete", selected_client["projects"])
 
             if st.button("Delete project"):
-                #the warning again
+                #ADD WARNING
                 selected_client["projects"].remove(project_name)
                 st.success(f"Project: {project_name} for Client: {selected_client_name} successfully deleted.")
 
