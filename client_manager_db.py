@@ -41,8 +41,28 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_client()
+def add_client_db(client_name, rate):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor
+    cursor.execute("INSERT INTO clients (client_name, rate) VALUES (?, ?)", (client_name, rate))
+    conn.commit()
+    conn.close()
 
-def add_project()
+def add_project_db(client_id, project_name):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor
+    cursor.execute("INSERT INTO projects (client_id, project_name) VALUES (?, ?)", (client_id, project_name))
+    conn.commit()
+    conn.close()
 
-def add_task()
+def add_task_db(client_id, project_id, task_name, deadline, complete, notes):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor
+    cursor.execute("""
+        INSERT INTO tasks (client_id, project_id, task_name, deadline, complete, notes) VALUES (?, ?)""",
+        (client_id, project_id, task_name, deadline, complete, notes)
+    )
+    conn.commit()
+    conn.close()
+
+def update_client_db
