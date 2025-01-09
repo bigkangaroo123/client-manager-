@@ -27,7 +27,7 @@ def init_db():
     #tasks table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
-            task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER PRIMARY KEY AUTOI   NCREMENT,
             client_id INTEGER NOT NULL,
             project_id INTEGER NOT NULL,
             deadline TEXT
@@ -41,6 +41,8 @@ def init_db():
     conn.commit()
     conn.close()
 
+
+#--------------adding stuff to db------------------
 def add_client_db(client_name, rate):
     conn = sqlite3.connect("client_management.db")
     cursor = conn.cursor
@@ -65,4 +67,78 @@ def add_task_db(client_id, project_id, task_name, deadline, complete, notes):
     conn.commit()
     conn.close()
 
-def update_client_db
+#--------------updating stuff from db------------------
+def update_client_db(client_id, client_name, rate):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE clients
+        SET client_name = ?, rate = ?
+        WHERE client_id = ?
+    """, (client_name, rate, client_id))
+    conn.commit()
+    conn.close()
+
+def update_project_db(project_id, project_name):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE projects
+        SET project_name = ?
+        WHERE project_id = ?
+    """, (project_name, project_id))
+    conn.commit()
+    conn.close()
+
+def update_task_db(task_id, task_name, deadline, complete, notes):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE tasks
+        SET task_name = ?, deadline = ?, complete = ?, notes = ?
+        WHERE task_id = ?
+    """, (task_name, deadline, complete, notes, task_id))
+    conn.commit()
+    conn.close()
+
+#--------------deleting stuff from db------------------
+def delete_client_db(client_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM clients WHERE client_id = ?", (client_id,))
+    cursor.execute("DELETE FROM projects WHERE client_id = ?", (client_id,))
+    cursor.execute("DELETE FROM tasks WHERE client_id = ?", (client_id,))
+    conn.commit()
+    conn.close()
+
+def delete_project_db(project_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM projects WHERE project_id = ?", (project_id,))
+    cursor.execute("DELETE FROM tasks WHERE project_id = ?", (project_id,))
+    conn.commit()
+    conn.close()
+
+def delete_task_db(task_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM tasks WHERE task_id = ?", (task_id,))
+    conn.commit()
+    conn.close()
+
+#--------------archiving stuff from db------------------
+def archive_client(client_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE clients SET status = 'archived' WHERE client_id = ?", (client_id,))
+    conn.commit()
+    conn.close()
+
+def archive_project(project_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE projects SET status = 'archived' WHERE project_id = ?", (project_id,))
+    conn.commit()
+    conn.close()
+
+
