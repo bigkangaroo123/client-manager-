@@ -140,5 +140,20 @@ def archive_project(project_id):
     cursor.execute("UPDATE projects SET status = 'archived' WHERE project_id = ?", (project_id,))
     conn.commit()
     conn.close()
+    
+#--------------viewing stuff from db------------------
+def get_all_clients():
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM clients")
+    clients = cursor.fetchall()
+    conn.close()
+    return clients
 
-
+def get_all_projects(client_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM projects WHERE client_id = ?", (client_id,))
+    projects = cursor.fetchall()
+    conn.close()
+    return projects
