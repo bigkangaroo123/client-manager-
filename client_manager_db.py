@@ -157,3 +157,11 @@ def get_all_projects(client_id):
     projects = cursor.fetchall()
     conn.close()
     return projects
+
+def get_all_tasks(client_id, project_id):
+    conn = sqlite3.connect("client_management.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tasks WHERE client_id = ?, project_id = ?", (client_id, project_id))
+    tasks = cursor.fetchall()
+    conn.close()
+    return tasks
