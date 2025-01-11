@@ -169,7 +169,7 @@ def delete():
         selected_client_name = st.selectbox("Select a client to delete", client_names)
     
         if selected_client_name:
-            if st.button("Delete Client")
+            if st.button("Delete Client"):
                 st.warning("Are you sure you want to permanantly delete this client?")
                 confirm_delete = st.radio("Choose an option: ", ("No", "Yes"))
     

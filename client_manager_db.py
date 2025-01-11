@@ -65,4 +65,4 @@ def add_task_db(client_id, project_id, task_name, deadline, complete, notes):
     conn.commit()
     conn.close()
 
-def update_client_db
+def update_client_db():

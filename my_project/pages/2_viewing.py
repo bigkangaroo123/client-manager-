@@ -27,16 +27,21 @@ def task_table(client_name, project_name):
 
     if st.session_state.tasks:
         for i, task in enumerate(st.session_state.tasks):
-            columns = st.columns([3, 3, 2, 3])
+            columns = st.columns([0.5, 3, 3, 4, 1])
 
             #the 4 columns:
-            task['task_name'] = columns[0].text_input("Task Name", value=task['task_name'], key=f"task_name_{i}")
+            task['complete'] = columns[0].checkbox("", value=task['complete'], key=f"status_task_{i}")
 
             task['deadline'] = columns[1].date_input("Deadline", value=task['deadline'], key=f"deadline_task_{i}")
 
-            task['complete'] = columns[2].checkbox("Done", value=task['complete'], key=f"status_task_{i}")
+            task['task_name'] = columns[2].text_input("Task Name", value=task['task_name'], key=f"task_name_{i}")
 
-            task['notes'] = columns[3].text_input("Notes", value=task['notes'], key=f"notes_task_{i}")
+            task['notes'] = columns[3].text_area("Notes", value=task['notes'], key=f"notes_task_{i}", height=100)
+
+            if columns[4].button("🗑️", key=f"delete{i}"):
+                del st.session_state.tasks[i]
+                st.rerun
+                #this isnt working like its suppsoed to ...
 
 #-------------- main viewing manu ----------------
 selected_client = None
@@ -75,6 +80,6 @@ else:
         for client in st.session_state.clients:
             st.write(f"**{client['name']}** (Rate: ${client['rate']}/hour)")
             if 'projects' in client and client['projects']:
-                st.write(f"Projects: {', '.join(client['projects'])}")
+                st.write(f"&nbsp;&nbsp;&nbsp;&nbsp;Projects: {', '.join(client['projects'])}") #the weird code at the start is necessary for indenting
             else:
                 st.write("This client has no projects added.")
