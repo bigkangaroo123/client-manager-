@@ -1,5 +1,6 @@
 import streamlit as st
 import client_manager_db
+client_manager_db.init_db()
 
 # ---------- Add client section: -------------
 st.title(" ➕🤝 Add a client:")
