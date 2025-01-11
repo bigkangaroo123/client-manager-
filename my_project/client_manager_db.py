@@ -41,6 +41,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+init_db()
 
 #--------------adding stuff to db------------------
 def get_db_connection():
@@ -200,3 +201,16 @@ def get_all_archived_projects():
         })
 
     return archived_projects_data
+
+def get_client_by_name(client_name):
+    conn = get_db_connection()
+    query = """
+        SELECT * FROM clients WHERE name = ?
+    """
+    client = conn.execute(query, (client_name,)).fetchone()  # fetchone returns the first match or returns None
+    conn.close()
+
+    if client:
+        return dict(client) #returning client as a dictionary for easy access to its different attributes like name, billing rate
+    else:
+        return None
