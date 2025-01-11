@@ -1,20 +1,13 @@
 import streamlit as st
-
-if 'clients' not in st.session_state:
-    st.session_state.clients = [] 
-if 'client_name' not in st.session_state:
-    st.session_state.client_name = ''
-if 'billing_rate' not in st.session_state:
-    st.session_state.billing_rate = ''
+import client_manager_db
 
 # ---------- Add client section: -------------
 st.title(" ➕🤝 Add a client:")
 
-client_name = st.text_input("Enter the name of the client:", key="client_name", placeholder="Type client's name here") #value change (try resetting input field)
-billing_rate = st.text_input("Add hourly billing rate with this client", key="billing_rate", placeholder="Type billing rate here") 
+client_name = st.text_input("Enter the name of the client:", placeholder="Type client's name here")
+billing_rate = st.text_input("Add hourly billing rate with this client", placeholder="Type billing rate here") 
 
-add_client_button = st.button("Add Client", key="add_client_button")
-
+add_client_button = st.button("Add Client")
 
 if add_client_button:
     if not client_name:
@@ -26,30 +19,22 @@ if add_client_button:
     else:
         billing_rate = int(billing_rate)
         if billing_rate <= 0:
-            st.error("Please enter a positive integer for thhe billing rate")
+            st.error("Please enter a positive integer for the billing rate")
         else:
-            client = {
-                'name' : client_name,
-                'rate' : billing_rate,
-                'projects' : []
-            }
-            st.session_state.clients.append(client)
+            client_manager_db.add_client_db(client_name, billing_rate)
             st.success(f"Client {client_name} with hourly rate of ${billing_rate} added!")
 
 # ---------- Add project section: -------------
-
 st.title("➕📊 Add a project:")
 
-if st.session_state.clients:
-    client_names = []
-    for client in st.session_state.clients:
-        client_names.append(client["name"])
+clients = client_manager_db.get_all_clients()  # Fetch clients directly from database
 
+if clients:
+    client_names = [client['name'] for client in clients]
     selected_client_name = st.selectbox("Select a client", client_names)
 
     selected_client = None
-    # Loop through the clients to find the selected client
-    for client in st.session_state.clients:
+    for client in clients:
         if client['name'] == selected_client_name:
             selected_client = client
             break
@@ -59,7 +44,7 @@ if st.session_state.clients:
     
     if add_project_button:
         if project_name and project_name not in selected_client['projects']:
-            selected_client['projects'].append(project_name)
+            client_manager_db.add_project_db(selected_client['id'], project_name)
             st.success(f"Project '{project_name}' added to {selected_client_name}!")
         else:
             st.error("Please enter a valid project name that doesn't already exist.")

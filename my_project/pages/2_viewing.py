@@ -1,49 +1,85 @@
 import streamlit as st
+import client_manager_db
 
-st.title("📂 Your Clients:")
-#-------------- task table -----------------
-# 1st column: task name
-# 2nd: deadline
-# 3rd: checkbox
+# -------------- Task Table -----------------
+# 1st column: checkbox
+# 2nd: task name
+# 3rd: deadline
 # 4th: notes
- 
-if 'tasks' not in st.session_state:
-    st.session_state.tasks = []
-
-def add_task():
-    task = {
-        'task_name' : '',
-        'deadline' : None,
-        'complete' : False, 
-        'notes' : ''
-    }
-    st.session_state.tasks.append(task)
 
 def task_table(client_name, project_name):
     st.subheader(f"📋 Task Table for {project_name} under {client_name}")
 
+    # Add Task Button
     if st.button("Add Task"):
-        add_task()
+        task_name = st.text_input("Enter Task Name", placeholder="Task Name")
+        deadline = st.date_input("Select Deadline", value=None)
+        notes = st.text_area("Enter Notes", height=100)
 
-    if st.session_state.tasks:
-        for i, task in enumerate(st.session_state.tasks):
+        # Check if task data is filled before adding it to the database
+        if task_name and deadline and notes:
+            # Fetch client_id using client_name
+            clients = client_manager_db.get_all_clients()
+            client_id = None
+            for client in clients:
+                if client['name'] == client_name:
+                    client_id = client['id']
+                    break
+
+            if client_id:
+                # Add task to the database
+                client_manager_db.add_task_db(client_id, project_name, task_name, deadline, notes)
+                st.success(f"Task '{task_name}' added to project '{project_name}' under client '{client_name}'!")
+            else:
+                st.error("Client not found.")
+        else:
+            st.error("Please fill all task details.")
+    
+    # Retrieve and display tasks from the database for the selected project
+    conn = client_manager_db.get_db_connection()
+    tasks = conn.execute("""
+        SELECT * FROM tasks WHERE client_id = (SELECT id FROM clients WHERE name = ?) 
+        AND project_name = ?
+    """, (client_name, project_name)).fetchall()
+    
+    if tasks:
+        for task in tasks:
+            task_name = task['task_name']
+            task_deadline = task['deadline']
+            task_notes = task['notes']
+            task_complete = task['complete']
+            task_id = task['id']  # Get the task ID for deleting
+
             columns = st.columns([0.5, 3, 3, 4, 1])
 
-            #the 4 columns:
-            task['complete'] = columns[0].checkbox("", value=task['complete'], key=f"status_task_{i}")
+            task_complete = columns[0].checkbox("", value=task_complete)
 
-            task['deadline'] = columns[1].date_input("Deadline", value=task['deadline'], key=f"deadline_task_{i}")
+            task_deadline = columns[1].date_input("Deadline", value=task_deadline)
+            task_name = columns[2].text_input("Task Name", value=task_name)
+            task_notes = columns[3].text_area("Notes", value=task_notes, height=100)
 
-            task['task_name'] = columns[2].text_input("Task Name", value=task['task_name'], key=f"task_name_{i}")
+            # Delete Task Button
+            if columns[4].button("🗑️", key=f"delete{task_id}"):
+                # Handle deleting the task from the database
+                client_id = None
+                clients = client_manager_db.get_all_clients()
+                for client in clients:
+                    if client['name'] == client_name:
+                        client_id = client['id']
+                        break
 
-            task['notes'] = columns[3].text_area("Notes", value=task['notes'], key=f"notes_task_{i}", height=100)
+                if client_id:
+                    # Call the delete_task_db function with task_id, client_id, and project_name
+                    client_manager_db.delete_task_db(task_id, client_id, project_name)
+                    st.success(f"Task '{task_name}' deleted successfully!")
+                    st.experimental_rerun()  # Re-run the app to reflect the changes
+                else:
+                    st.error("Client not found for deletion.")
+    else:
+        st.info(f"No tasks found for project '{project_name}'.")
 
-            if columns[4].button("🗑️", key=f"delete{i}"):
-                del st.session_state.tasks[i]
-                st.rerun
-                #this isnt working like its suppsoed to ...
+# -------------- Main Viewing Menu ----------------
 
-#-------------- main viewing manu ----------------
 selected_client = None
 
 if 'clients' not in st.session_state or not st.session_state.clients:
@@ -70,7 +106,7 @@ else:
             selected_project = st.selectbox(
                 f"Projects for {selected_client['name']}", ["All Projects"] + selected_client['projects'])
 
-            if selected_project != "All Projects": #when a project is selected, display its task table
+            if selected_project != "All Projects":  # When a project is selected, display its task table
                 task_table(selected_client['name'], selected_project)
             else:
                 st.write(f"Projects under {selected_client['name']}:")
@@ -80,6 +116,6 @@ else:
         for client in st.session_state.clients:
             st.write(f"**{client['name']}** (Rate: ${client['rate']}/hour)")
             if 'projects' in client and client['projects']:
-                st.write(f"&nbsp;&nbsp;&nbsp;&nbsp;Projects: {', '.join(client['projects'])}") #the weird code at the start is necessary for indenting
+                st.write(f"&nbsp;&nbsp;&nbsp;&nbsp;Projects: {', '.join(client['projects'])}")  # The weird code at the start is necessary for indenting
             else:
                 st.write("This client has no projects added.")
