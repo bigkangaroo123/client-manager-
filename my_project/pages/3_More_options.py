@@ -210,11 +210,11 @@ def delete():
                     client_manager_db.delete_project_db(selected_client['id'], project_id)
                     st.success(f"Project '{project_name}' has been deleted!")
 
-if selected == "Edit":
+if selected == "✏️Edit":
     edit()
 
-if selected == "Archive":
+if selected == "📦Archive":
     archive()
 
-if selected == "Delete":
+if selected == "🗑️Delete":
     delete()
