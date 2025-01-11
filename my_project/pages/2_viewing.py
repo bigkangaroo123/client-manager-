@@ -25,7 +25,7 @@ def task_table(client_name, project_name):
             clients = client_manager_db.get_all_clients()
             client_id = None
             for client in clients:
-                if client['name'] == client_name:
+                if client['client_name'] == client_name:
                     client_id = client['id']
                     break
 
@@ -74,7 +74,7 @@ clients = client_manager_db.get_all_clients()
 if not clients:
     st.warning("No clients available. Add some clients first!")
 else:
-    client_names = [client['name'] for client in clients]
+    client_names = [client['client_name'] for client in clients]
 
     # Select a client from the dropdown
     selected_client_name = st.selectbox("Select a client", client_names)
@@ -84,17 +84,17 @@ else:
         # Fetch selected client from the database
         selected_client = client_manager_db.get_client_by_name(selected_client_name)
         
-        st.subheader(f"Client: {selected_client['name']}")
+        st.subheader(f"Client: {selected_client['client_name']}")
         st.write(f"Hourly Rate: ${selected_client['rate']}/hour")
 
         # Check if the selected client has projects
-        projects = selected_client['projects']
+        projects = client_manager_db.get_all_projects(selected_client['id'])
         if not projects:
-            st.info(f"No projects found for {selected_client_name}.")
+            st.info(f"No projects found for {selected_client['client_name']}.")
         else:
             # Display a dropdown with the client's projects
-            selected_project = st.selectbox(f"Select a project for {selected_client['name']}", projects)
+            selected_project = st.selectbox(f"Select a project for {selected_client['client_name']}", projects)
 
             # When a project is selected, display the task table
             if selected_project:
-                task_table(selected_client['name'], selected_project)
+                task_table(selected_client['client_name'], selected_project)
