@@ -178,14 +178,6 @@ def get_all_clients():
     conn.close()
     return clients
 
-def get_all_projects(client_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM projects WHERE status != 'archived' AND client_id = ?", (client_id,))
-    projects = cursor.fetchall()
-    conn.close()
-    return projects
-
 def get_all_archived_projects():
     conn = get_db_connection()
     cursor = conn.cursor()
