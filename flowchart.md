@@ -1,4 +1,5 @@
 ```mermaid
+%%{ init: { themeVariables: { scale: 1.5 } } }%%
 graph TD
     MainPage((Main Page)) --> Sidebar[Choose from Sidebar]
     
@@ -8,11 +9,11 @@ graph TD
     
     %% Insertion Path
     Insertion --> AddClient[Add a Client]
-    AddClient --> AddProject[Add a Project (after Client)]
+    AddClient --> AddProject[Add Project after selecting Client]
     
     %% Viewing Path
     Viewing --> ViewClient[View Clients]
-    Viewing --> ViewProjects[View Projects]
+    ViewClient --> ViewProjects[View Projects]
     ViewProjects --> TaskTable[Display Task Table]
     
     %% More Options Path
