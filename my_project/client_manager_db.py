@@ -203,9 +203,7 @@ def get_all_archived_projects():
 
 def get_client_by_name(client_name):
     conn = get_db_connection()
-    query = """
-        SELECT * FROM clients WHERE client_name = ?  # Fixed column name `client_name`
-    """
+    query = """SELECT * FROM clients WHERE client_name = ?"""
     client = conn.execute(query, (client_name,)).fetchone()  # fetchone returns the first match or None
     conn.close()
 
@@ -232,3 +230,15 @@ def get_all_projects(client_id):
         })
 
     return projects_data
+
+def get_tasks_by_client_and_project(client_name, project_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT t.id, t.task_name, t.deadline, t.notes, t.complete
+                      FROM tasks t
+                      JOIN projects p ON t.project_id = p.id
+                      JOIN clients c ON p.client_id = c.id
+                      WHERE c.client_name = ? AND p.project_name = ?""", (client_name, project_name))
+    tasks = cursor.fetchall()
+    conn.close()
+    return tasks

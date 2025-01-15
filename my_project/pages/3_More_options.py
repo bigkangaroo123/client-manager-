@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import client_manager_db
-client_manager_db.init_db()
 
 # Option menu for More Options
 selected = option_menu(
@@ -12,17 +11,13 @@ selected = option_menu(
 
 # ---------- editing -------------
 def edit(): 
-    if 'clients' not in client_manager_db.get_all_clients():
+    if not client_manager_db.get_all_clients():
         st.warning("No clients or projects available. Add some first!")
     else:
         client_names = [client['client_name'] for client in client_manager_db.get_all_clients()]
         selected_client_name = st.selectbox("Select a client to edit", client_names)
 
-        selected_client = None
-        for client in client_manager_db.get_all_clients():
-            if client['client_name'] == selected_client_name:
-                selected_client = client
-                break
+        selected_client = client_manager_db.get_client_by_name(selected_client_name)
 
         if selected_client:
             st.subheader(f"Editing Client: {selected_client_name}")
@@ -42,22 +37,27 @@ def edit():
                     st.error("Please enter a valid integer for the billing rate.")
 
             st.subheader(f"Projects for {selected_client_name}")
-            if "projects" not in selected_client or not selected_client['projects']: #get projects
+            projects = client_manager_db.get_all_projects(selected_client['id'])
+
+            if not projects:
                 st.write("No projects available for this client.")
             else:
-                project_name = st.selectbox("Select a project to edit", selected_client["projects"])
+                project_names = [project['project_name'] for project in projects]
+                project_name = st.selectbox("Select a project to edit", project_names)
+
                 new_project_name = st.text_input("Edit project name:", value=project_name)
 
                 if st.button(f"Save Changes to Project '{project_name}'"):
                     if new_project_name and new_project_name != project_name:
-                        client_manager_db.update_project_db(selected_client['id'], project_name, new_project_name)
+                        project_id = next(project['id'] for project in projects if project['project_name'] == project_name)
+                        client_manager_db.update_project_db(project_id, new_project_name)
                         st.success(f"Project name updated to '{new_project_name}'!")
                     else:
                         st.error("Please enter a valid and different project name.")
 
 # ---------- archiving / unarchiving -------------
 def archive():
-    if 'clients' not in client_manager_db.get_all_clients():
+    if not client_manager_db.get_all_clients():
         st.warning("No clients or projects available. Add some first!")
 
     st.subheader("Archive / Unarchive Options")
@@ -72,11 +72,7 @@ def archive():
             selected_client_name = st.selectbox("Select a client to archive", client_names)
 
             if selected_client_name:
-                selected_client = None
-                for client in client_manager_db.get_all_clients():
-                    if client['client_name'] == selected_client_name:
-                        selected_client = client
-                        break
+                selected_client = client_manager_db.get_client_by_name(selected_client_name)
                 if selected_client:
                     if st.button(f"Archive Client '{selected_client_name}'"):
                         client_manager_db.archive_client(selected_client['id'])
@@ -86,47 +82,35 @@ def archive():
             client_names = [client['client_name'] for client in client_manager_db.get_all_clients()]
             selected_client_name = st.selectbox("Select a client", client_names)
 
-            selected_client = None
-            if selected_client_name != "All Clients":
-                for client in client_manager_db.get_all_clients():
-                    if client['client_name'] == selected_client_name:
-                        selected_client = client
-                        break
+            selected_client = client_manager_db.get_client_by_name(selected_client_name)
 
-            if selected_client and "projects" in selected_client and selected_client["projects"]:
-                project_name = st.selectbox("Select a project to archive", selected_client["projects"])
+            if selected_client:
+                projects = client_manager_db.get_all_projects(selected_client['id'])
+                if not projects:
+                    st.write("No projects available for this client.")
+                else:
+                    project_names = [project['project_name'] for project in projects]
+                    project_name = st.selectbox("Select a project to archive", project_names)
 
-                if st.button(f"Archive Project '{project_name}'"):
-                    project_id = None
-                    for project in selected_client["projects"]:
-                        if project['client_name'] == project_name:
-                            project_id = project['id']
-                            break
-                    if project_id:
+                    if st.button(f"Archive Project '{project_name}'"):
+                        project_id = next(project['id'] for project in projects if project['project_name'] == project_name)
                         client_manager_db.archive_project(selected_client['id'], project_id)
                         st.success(f"Project '{project_name}' has been archived!")
-
-            else:
-                st.warning("No projects available for the selected client.")
 
     elif action_type == "Unarchive":
         unarchive_type = st.radio("What would you like to unarchive?", ("Client", "Project"))
 
         if unarchive_type == "Client":
-            archived_clients = client_manager_db.get_all_clients(status='archived')
-            if not archived_clients:
+            archived_clients = client_manager_db.get_all_clients()
+            archived_client_names = [client['client_name'] for client in archived_clients if client['status'] == 'archived']
+            if not archived_client_names:
                 st.warning("No archived clients.")
             else:
-                archived_client_names = [client['client_name'] for client in archived_clients]
                 selected_client_name = st.selectbox("Select a client to unarchive", archived_client_names)
 
                 if selected_client_name:
                     if st.button(f"Unarchive Client '{selected_client_name}'"):
-                        selected_client = None
-                        for client in archived_clients:
-                            if client['client_name'] == selected_client_name:
-                                selected_client = client
-                                break
+                        selected_client = client_manager_db.get_client_by_name(selected_client_name)
                         if selected_client:
                             client_manager_db.unarchive_client(selected_client['id'])
                             st.success(f"Client '{selected_client_name}' has been unarchived!")
@@ -140,28 +124,18 @@ def archive():
                 selected_client_name, selected_project_name = st.selectbox(
                     "Select a project to unarchive", archived_project_names, format_func=lambda x: f"{x[0]} - {x[1]}"
                 )
-                #the format_func just makes the projects look like:" client - project " in the dropdown
 
                 if selected_client_name and selected_project_name:
+                    selected_client = client_manager_db.get_client_by_name(selected_client_name)
                     if st.button(f"Unarchive Project '{selected_project_name}'"):
-                        selected_client = None
-                        for client in archived_projects:
-                            if client['client_name'] == selected_client_name:
-                                selected_client = client
-                                break
-                        if selected_client:
-                            selected_project = None
-                            for project in selected_client["projects"]:
-                                if project['client_name'] == selected_project_name:
-                                    selected_project = project
-                                    break
-                            if selected_project:
-                                client_manager_db.unarchive_project(selected_client['id'], selected_project['id'])
-                                st.success(f"Project '{selected_project_name}' has been unarchived!")
+                        selected_client = client_manager_db.get_client_by_name(selected_client_name)
+                        selected_project = next(project for project in client_manager_db.get_all_projects(selected_client['id']) if project['project_name'] == selected_project_name)
+                        client_manager_db.unarchive_project(selected_client['id'], selected_project['id'])
+                        st.success(f"Project '{selected_project_name}' has been unarchived!")
 
 # ---------- deleting -------------
 def delete():
-    if 'clients' not in client_manager_db.get_all_clients():
+    if not client_manager_db.get_all_clients():
         st.warning("No clients or projects available. Add some first!")
 
     action_type = st.radio("What would you like to delete?", ("Client", "Project"))
@@ -171,46 +145,50 @@ def delete():
         selected_client_name = st.selectbox("Select a client to delete", client_names)
 
         if selected_client_name:
+            # Confirm Deletion Button
             if st.button("Delete Client"):
-                st.warning("Are you sure you want to permanently delete this client?")
-                confirm_delete = st.radio("Choose an option: ", ("No", "Yes"))
+                # Ask for confirmation
+                st.warning(f"Are you sure you want to permanently delete the client {selected_client_name}?")
 
-                if confirm_delete == "Yes":
-                    selected_client = None
-                    for client in client_manager_db.get_all_clients():
-                        if client['name'] == selected_client_name:
-                            selected_client = client
-                            break
-                    client_manager_db.delete_client_db(selected_client['id'])
-                    st.success(f"Client {selected_client_name} has been deleted!")
+                # Create a confirmation state to manage flow
+                if "confirm_delete" not in st.session_state:
+                    st.session_state.confirm_delete = False
 
-                elif confirm_delete == "No":
-                    st.success(f"Client deletion cancelled!")
+                # Buttons to confirm the action
+                if not st.session_state.confirm_delete:
+                    yes_button = st.button("Yes, Delete", key="yes")
+                    no_button = st.button("No, Cancel", key="no")
+
+                    if yes_button:
+                        # Set the session state to confirm deletion
+                        st.session_state.confirm_delete = True
+                        selected_client = client_manager_db.get_client_by_name(selected_client_name)
+                        client_manager_db.delete_client_db(selected_client['id'])
+                        st.success(f"Client {selected_client_name} permanently deleted!")
+                    elif no_button:
+                        st.success("Client deletion cancelled.")
+                else:
+                    # Confirmation state is set, so confirm and show action result
+                    st.success(f"Client {selected_client_name} permanently deleted!")
+
 
     elif action_type == "Project":
         client_names = [client['client_name'] for client in client_manager_db.get_all_clients()]
         selected_client_name = st.selectbox("Select a client to delete", client_names)
 
-        selected_client = None
-        if selected_client_name != "All Clients":
-            for client in client_manager_db.get_all_clients():
-                if client['client_name'] == selected_client_name:
-                    selected_client = client
-                    break
+        selected_client = client_manager_db.get_client_by_name(selected_client_name)
 
-        if selected_client and "projects" in selected_client and selected_client["projects"]:
-            project_name = st.selectbox("Select a project to delete", selected_client["projects"])
+        if selected_client and "projects" in selected_client:
+            project_names = [project['project_name'] for project in client_manager_db.get_all_projects(selected_client['id'])]
+            project_name = st.selectbox("Select a project to delete", project_names)
 
             if st.button("Delete Project"):
-                project_id = None
-                for project in selected_client["projects"]:
-                    if project['project_name'] == project_name:
-                        project_id = project['id']
-                        break
-                if project_id:
-                    client_manager_db.delete_project_db(selected_client['id'], project_id)
-                    st.success(f"Project '{project_name}' has been deleted!")
+                project_id = next(project['id'] for project in client_manager_db.get_all_projects(selected_client['id']) if project['project_name'] == project_name)
 
+                client_manager_db.delete_project_db(selected_client['id'], project_id)
+                st.success(f"Project '{project_name}' has been deleted!")
+
+# Call the appropriate function based on the selected option
 if selected == "✏️Edit":
     edit()
 

@@ -1,6 +1,6 @@
 import streamlit as st
 import client_manager_db
-client_manager_db.init_db()
+import datetime
 
 st.title("📂 Your Clients")
 
@@ -16,7 +16,7 @@ def task_table(client_name, project_name):
     # Add Task Button
     if st.button("Add Task"):
         task_name = st.text_input("Enter Task Name", placeholder="Task Name")
-        deadline = st.date_input("Select Deadline", value=None)
+        deadline = st.date_input("Select Deadline", value=datetime.date.today())
         notes = st.text_area("Enter Notes", height=100)
 
         # Check if task data is filled before adding it to the database
@@ -29,9 +29,20 @@ def task_table(client_name, project_name):
                     client_id = client['id']
                     break
 
+            # Fetch project_id using project_name
+            projects = client_manager_db.get_all_projects(client_id)
+            project_id = None
+            for project in projects:
+                if project['project_name'] == project_name:
+                    project_id = project['id']
+                    break
+
             # Add task to the database
-            client_manager_db.add_task_db(client_id, project_name, task_name, deadline, notes)
-            st.success(f"Task '{task_name}' added to project '{project_name}' under client '{client_name}'!")
+            if deadline < datetime.date.today():
+                st.error("The deadline cannot be in the past.")
+            else:
+                client_manager_db.add_task_db(client_id, project_id, task_name, deadline, False, notes)
+                st.success(f"Task '{task_name}' added to project '{project_name}' under client '{client_name}'!")
         else:
             st.error("Please fill all task details.")
     
@@ -54,13 +65,17 @@ def task_table(client_name, project_name):
             task_name = columns[2].text_input("Task Name", value=task_name)
             task_notes = columns[3].text_area("Notes", value=task_notes, height=100)
 
-            # Delete Task Button
+            # Update the task completion status when checkbox is checked
+            if task_complete != task['complete']:
+                client_manager_db.update_task_db(task_id, task_name, task_deadline, task_complete, task_notes)
+
+            # Delete task button
             if columns[4].button("🗑️", key=f"delete{task_id}"):
                 # Handle deleting the task from the database
                 client_manager_db.delete_task_db(task_id)
                 st.success(f"Task '{task_name}' deleted successfully!")
-                # To refresh the task list after deletion
-                task_table(client_name, project_name)  # Calling the function again to refresh the task list
+                st.rerun()  # This refreshes the page
+
     else:
         st.info(f"No tasks found for project '{project_name}'.")
 
@@ -93,8 +108,7 @@ else:
             st.info(f"No projects found for {selected_client['client_name']}.")
         else:
             # Display a dropdown with the client's projects
-            selected_project = st.selectbox(f"Select a project for {selected_client['client_name']}", projects)
-
+            selected_project = st.selectbox(f"Select a project for {selected_client['client_name']}", projects, format_func=lambda x: x['project_name'])
             # When a project is selected, display the task table
             if selected_project:
-                task_table(selected_client['client_name'], selected_project)
+                task_table(selected_client['client_name'], selected_project['project_name'])
