@@ -1,8 +1,8 @@
 import streamlit as st
-import client_manager_db
+import client_management_db
 
 # ---------- Add client section: -------------
-st.title(" ➕🤝 Add a client:")
+st.title(" ➕🧑‍🤝 Add a client:")
 
 client_name = st.text_input("Enter the name of the client:", placeholder="Type client's name here")
 billing_rate = st.text_input("Add hourly billing rate with this client", placeholder="Type billing rate here") 
@@ -12,7 +12,7 @@ add_client_button = st.button("Add Client")
 if add_client_button:
     if not client_name:
         st.error("Please input the client's name to proceed...")
-    elif client_manager_db.get_client_by_name(client_name):
+    elif client_management_db.get_client_by_name(client_name):
         st.error("Please input a client that does not already exist")
     elif not billing_rate:
         st.error("Please also input the billing rate to proceed...")
@@ -23,13 +23,13 @@ if add_client_button:
         if billing_rate <= 0:
             st.error("Please enter a positive integer for the billing rate")
         else:
-            client_manager_db.add_client_db(client_name, billing_rate)
+            client_management_db.add_client_db(client_name, billing_rate)
             st.success(f"Client {client_name} with hourly rate of ${billing_rate} added!")
 
 # ---------- Add project section: -------------
-st.title("➕📊 Add a project:")
+st.title("➕📈 Add a project:")
 
-clients = client_manager_db.get_all_clients()  # Fetch clients directly from database
+clients = client_management_db.get_all_clients()  # Fetch clients directly from database
 
 if clients:
     client_names = [client['client_name'] for client in clients]
@@ -42,7 +42,7 @@ if clients:
             break
 
     # Fetch projects for the selected client
-    projects = client_manager_db.get_all_projects(selected_client['id'])
+    projects = client_management_db.get_all_projects(selected_client['id'])
 
     project_names = [project['project_name'] for project in projects]
 
@@ -50,10 +50,14 @@ if clients:
     add_project_button = st.button("Add Project")
     
     if add_project_button:
-        if project_name and project_name not in project_names:
-            client_manager_db.add_project_db(selected_client['id'], project_name)
-            st.success(f"Project '{project_name}' added to {selected_client_name}!")
+        if not project_name:
+            st.error("Please add a project name")
+
+        elif project_name in project_names:
+            st.error("This project already exists with the client you selected")
+
         else:
-            st.error("Please enter a valid project name that doesn't already exist.")
+            client_management_db.add_project_db(selected_client['id'], project_name)
+            st.success(f"Project '{project_name}' added to {selected_client_name}!")
 else:
     st.write("No clients available. Add a client first.")

@@ -12,7 +12,6 @@ def init_db():
         client_name TEXT NOT NULL,
         rate REAL,
         status TEXT DEFAULT 'active'
-        projects
     )
     """)
 
@@ -31,13 +30,15 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        project_name TEXT NOT NULL,
+        project_id INTEGER NOT NULL,
+        client_id INTEGER NOT NULL,
         task_name TEXT NOT NULL,
         deadline DATE,
         notes TEXT,
         complete BOOLEAN DEFAULT 0,
-        client_id INTEGER,
-        FOREIGN KEY (client_id) REFERENCES clients(id)
+        hours REAL NOT NULL,
+        FOREIGN KEY (client_id) REFERENCES clients(id),
+        FOREIGN KEY (project_id) REFERENCES projects(id)
     )
     """)
 
@@ -62,17 +63,21 @@ def add_client_db(client_name, rate):
 def add_project_db(client_id, project_name):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO projects (client_id, project_name) VALUES (?, ?)", (client_id, project_name))
+    cursor.execute("""
+        INSERT INTO projects (client_id, project_name)
+        VALUES (?, ?)
+    """, (client_id, project_name))
     conn.commit()
     conn.close()
 
-def add_task_db(client_id, project_id, task_name, deadline, complete, notes):
+
+def add_task_db(client_id, project_id, task_name, deadline, complete, notes, hours):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO tasks (client_id, project_id, task_name, deadline, complete, notes) 
-        VALUES (?, ?, ?, ?, ?, ?)""",
-        (client_id, project_id, task_name, deadline, complete, notes)
+        INSERT INTO tasks (client_id, project_id, task_name, deadline, complete, notes, hours) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (client_id, project_id, task_name, deadline, complete, notes, hours)
     )
     conn.commit()
     conn.close()
@@ -85,7 +90,7 @@ def update_client_db(client_id, client_name, rate):
     cursor.execute("""
         UPDATE clients
         SET client_name = ?, rate = ?
-        WHERE id = ?  # Fixed: Correct column name `id`
+        WHERE id = ?
     """, (client_name, rate, client_id))
     conn.commit()
     conn.close()
@@ -101,14 +106,14 @@ def update_project_db(project_id, project_name):
     conn.commit()
     conn.close()
 
-def update_task_db(task_id, task_name, deadline, complete, notes):
+def update_task_db(task_id, task_name, deadline, complete, notes, hours):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE tasks
-        SET task_name = ?, deadline = ?, complete = ?, notes = ?
+        SET task_name = ?, deadline = ?, complete = ?, notes = ?, hours = ?
         WHERE id = ?  # Fixed: Correct column name `id`
-    """, (task_name, deadline, complete, notes, task_id))
+    """, (task_name, deadline, complete, notes, hours, task_id))
     conn.commit()
     conn.close()
 
@@ -213,11 +218,14 @@ def get_client_by_name(client_name):
         return None
     
 def get_all_projects(client_id):
-    conn = sqlite3.connect("client_management.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM projects WHERE status != 'archived' AND client_id = ?", (client_id,))
+    cursor.execute("""
+        SELECT id, project_name FROM projects WHERE client_id = ?
+    """, (client_id,))
     projects = cursor.fetchall()
     conn.close()
+    return [{'id': row[0], 'project_name': row[1]} for row in projects]
 
     # Convert fetched results to a list of dictionaries
     projects_data = []
@@ -234,7 +242,7 @@ def get_all_projects(client_id):
 def get_tasks_by_client_and_project(client_name, project_name):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT t.id, t.task_name, t.deadline, t.notes, t.complete
+    cursor.execute("""SELECT t.id, t.task_name, t.deadline, t.notes, t.complete, t.hours
                       FROM tasks t
                       JOIN projects p ON t.project_id = p.id
                       JOIN clients c ON p.client_id = c.id
