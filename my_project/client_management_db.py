@@ -2,7 +2,7 @@ import sqlite3
 
 # Initialize the database:
 def init_db():
-    conn = sqlite3.connect('client_management.db')  # Connect to your SQLite database
+    conn = sqlite3.connect('client_manager.db')  # Connect to your SQLite database
     cursor = conn.cursor()
 
     # Create the clients table if it doesn't exist
@@ -47,7 +47,7 @@ def init_db():
 
 # Utility function for database connection
 def get_db_connection():
-    conn = sqlite3.connect('client_management.db')
+    conn = sqlite3.connect('client_manager.db')
     conn.row_factory = sqlite3.Row  # This allows us to access columns by name
     return conn
 
@@ -226,18 +226,6 @@ def get_all_projects(client_id):
     projects = cursor.fetchall()
     conn.close()
     return [{'id': row[0], 'project_name': row[1]} for row in projects]
-
-    # Convert fetched results to a list of dictionaries
-    projects_data = []
-    for project in projects:
-        projects_data.append({
-            "id": project[0],
-            "client_id": project[1],
-            "project_name": project[2],
-            "status": project[3]
-        })
-
-    return projects_data
 
 def get_tasks_by_client_and_project(client_id, project_id):
     conn = get_db_connection()

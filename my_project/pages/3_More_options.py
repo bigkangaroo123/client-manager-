@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import client_management_db
+client_management_db.init_db()
 
 # Option menu for More Options
 selected = option_menu(
