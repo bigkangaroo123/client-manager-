@@ -47,7 +47,6 @@ def display_task_table(client_name, project_name, project_id):
             if columns[6].button("🗑️", key=f"delete_{task_id}"):
                 client_management_db.delete_task_db(client['id'], project_id, task_id)
                 st.success(f"Task '{task_name}' deleted successfully!")
-                st.rerun()
 
         st.markdown(f"### 💰 Total Money Earned: ${total_money_earned:.2f}")
     else:
