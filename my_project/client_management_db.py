@@ -2,7 +2,7 @@ import sqlite3
 
 # Initialize the database:
 def init_db():
-    conn = sqlite3.connect('client_manager.db')  # Connect to your SQLite database
+    conn = sqlite3.connect('client_management.db')  # Connect to your SQLite database
     cursor = conn.cursor()
 
     # Create the clients table if it doesn't exist
@@ -47,7 +47,7 @@ def init_db():
 
 # Utility function for database connection
 def get_db_connection():
-    conn = sqlite3.connect('client_manager.db')
+    conn = sqlite3.connect('client_management.db')
     conn.row_factory = sqlite3.Row  # This allows us to access columns by name
     return conn
 
