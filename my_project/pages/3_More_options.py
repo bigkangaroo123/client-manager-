@@ -140,34 +140,25 @@ def archive():
 # ---------- deleting -------------
 def delete():
     if not client_management_db.get_all_clients():
-        st.warning("No clients or projects available. Add some first!")
-        return  # Stop execution if no clients are present
+        st.error("No clients or projects available. Add some first!")
 
     action_type = st.radio("What would you like to delete?", ("Client", "Project"))
 
-    # Deleting a Client
+    #Deleting a Client
     if action_type == "Client":
         client_names = [client['client_name'] for client in client_management_db.get_all_clients()]
-        if not client_names:
-            st.warning("No clients available to delete.")
-            return
 
         selected_client_name = st.selectbox("Select a client to delete", client_names)
 
         if st.button("Delete Client"):
-            confirm_delete = st.checkbox(f"Are you sure you want to delete client '{selected_client_name}'?", value=False)
-            if confirm_delete:
-                selected_client = client_management_db.get_client_by_name(selected_client_name)
-                client_management_db.delete_client_db(selected_client['id'])
-                st.success(f"Client '{selected_client_name}' has been deleted!")
-                st.experimental_rerun()
+            selected_client = client_management_db.get_client_by_name(selected_client_name)
+            client_management_db.delete_client_db(selected_client['id'])
+            st.success(f"Client '{selected_client_name}' has been deleted!")
+            st.rerun()
 
     # Deleting a Project
     elif action_type == "Project":
         client_names = [client['client_name'] for client in client_management_db.get_all_clients()]
-        if not client_names:
-            st.warning("No clients available to delete projects from.")
-            return
 
         selected_client_name = st.selectbox("Select a client", client_names)
 
@@ -183,12 +174,15 @@ def delete():
         selected_project_name = st.selectbox("Select a project to delete", project_names)
 
         if st.button("Delete Project"):
-            confirm_delete = st.checkbox(f"Are you sure you want to delete project '{selected_project_name}'?", value=False)
-            if confirm_delete:
-                project_id = next((project['id'] for project in projects if project['project_name'] == selected_project_name), None)
-                client_management_db.delete_project_db(selected_client['id'], project_id)
-                st.success(f"Project '{selected_project_name}' has been deleted!")
-                st.rerun()
+            project_id = None
+            for project in projects:
+                if project['project_name'] == selected_project_name:
+                    project_id = project['id']
+                    break
+
+            client_management_db.delete_project_db(selected_client['id'], project_id)
+            st.success(f"Project '{selected_project_name}' has been deleted!")
+            st.rerun()
 
 # Call the appropriate function based on the selected option
 if selected == "✏️Edit":

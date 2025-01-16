@@ -5,13 +5,13 @@ import datetime
 st.title("📂 Your Clients")
 
 # Function to display the task table
-def display_task_table(client_name, project_name):
+def display_task_table(client_name, project_name, project_id):
     st.subheader(f"📋 Task Table for {project_name} under {client_name}")
 
     client = client_management_db.get_client_by_name(client_name)
     client_rate = client['rate']  # To calculate money earned
 
-    tasks = client_management_db.get_tasks_by_client_and_project(client_name, project_name)
+    tasks = client_management_db.get_tasks_by_client_and_project(client['id'], project_id)
     total_money_earned = 0  # Initialize total earnings
 
     if tasks:
@@ -45,15 +45,15 @@ def display_task_table(client_name, project_name):
 
             # Delete task button
             if columns[5].button("🗑️", key=f"delete_{task_id}"):
-                client_management_db.delete_task_db(task_id)
+                client_management_db.delete_task_db(client['id'], project_id, task_id)
                 st.success(f"Task '{task_name}' deleted successfully!")
-                st.experimental_rerun()
+                st.rerun()
 
         st.markdown(f"### 💰 Total Money Earned: ${total_money_earned:.2f}")
     else:
         st.info(f"No tasks found for project '{project_name}'.")
 
-# Main Viewing Menu
+#--------------------Main Viewing Menu-----------------------
 clients = client_management_db.get_all_clients()
 
 if not clients:
@@ -76,10 +76,17 @@ else:
         if not projects:
             st.info(f"No projects found for {selected_client['client_name']}.")
         else:
-            project_names = [project['project_name'] for project in projects]
+            project_options = [{"name": project['project_name'], "id": project['id']} for project in projects]
 
-            # Select a project from the dropdown
+            # Create a dropdown showing only project names
+            project_names = [project['name'] for project in project_options]
             selected_project_name = st.selectbox("Select a project", project_names)
 
             if selected_project_name:
-                display_task_table(selected_client_name, selected_project_name)
+                # Get the ID of the selected project
+                selected_project_id = next(
+                    project['id'] for project in project_options if project['name'] == selected_project_name
+                )
+
+                # Pass both the client name and project ID to the display_task_table function
+                display_task_table(selected_client_name, selected_project_name, selected_project_id)

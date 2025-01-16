@@ -122,24 +122,24 @@ def update_task_db(task_id, task_name, deadline, complete, notes, hours):
 def delete_client_db(client_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM clients WHERE id = ?", (client_id,))
-    cursor.execute("DELETE FROM projects WHERE client_id = ?", (client_id,))
     cursor.execute("DELETE FROM tasks WHERE client_id = ?", (client_id,))
+    cursor.execute("DELETE FROM projects WHERE client_id = ?", (client_id,))
+    cursor.execute("DELETE FROM clients WHERE id = ?", (client_id,))
     conn.commit()
     conn.close()
 
 def delete_project_db(client_id, project_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM tasks WHERE project_id = ?", (project_id,))
-    cursor.execute("DELETE FROM projects WHERE client_id = ? AND id = ?", (client_id, project_id))  # Fixed column name `id`
+    cursor.execute("DELETE FROM tasks WHERE client_id = ? AND id = ?", (client_id, project_id))
+    cursor.execute("DELETE FROM projects WHERE client_id = ?", (client_id))
     conn.commit()
     conn.close()
 
-def delete_task_db(task_id):
+def delete_task_db(client_id, project_id, task_id): #OVER EHRE, CHANGE IN THE MORE OPTIONS TAB AND DELETE IN TASK IN VIEWEING TAB 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    cursor.execute("DELETE FROM tasks WHERE client_id = ? AND project_id = ? AND id = ?", (client_id, project_id, task_id))
     conn.commit()
     conn.close()
 
@@ -239,14 +239,35 @@ def get_all_projects(client_id):
 
     return projects_data
 
-def get_tasks_by_client_and_project(client_name, project_name):
+def get_tasks_by_client_and_project(client_id, project_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT t.id, t.task_name, t.deadline, t.notes, t.complete, t.hours
-                      FROM tasks t
-                      JOIN projects p ON t.project_id = p.id
-                      JOIN clients c ON p.client_id = c.id
-                      WHERE c.client_name = ? AND p.project_name = ?""", (client_name, project_name))
-    tasks = cursor.fetchall()
+
+    # Query to fetch tasks
+    query = """
+    SELECT 
+        id, task_name, deadline, notes, complete, hours
+    FROM 
+        tasks
+    WHERE 
+        client_id = ? AND project_id = ?
+    """
+    cursor.execute(query, (client_id, project_id))
+    rows = cursor.fetchall()
+
+    # Convert the fetched rows into a list of dictionaries
+    tasks = [
+        {
+            "id": row[0],
+            "task_name": row[1],
+            "deadline": row[2],
+            "notes": row[3],
+            "complete": bool(row[4]),  # Convert to boolean for clarity
+            "hours": row[5],
+        }
+        for row in rows
+    ]
+
     conn.close()
     return tasks
+    
