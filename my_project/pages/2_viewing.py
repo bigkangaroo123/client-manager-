@@ -27,7 +27,7 @@ def display_task_table(client_name, project_name, project_id):
             total_money_earned += money_earned
 
             # Task row with editing capabilities
-            columns = st.columns([0.5, 3, 3, 4, 1, 1])
+            columns = st.columns([0.5, 3, 3, 4, 1, 1, 1])
 
             # Complete checkbox
             task_complete = columns[0].checkbox("", value=task_complete, key=f"complete_{task_id}")
@@ -44,7 +44,7 @@ def display_task_table(client_name, project_name, project_id):
                 st.success(f"Task '{task_name}' updated successfully!")
 
             # Delete task button
-            if columns[5].button("🗑️", key=f"delete_{task_id}"):
+            if columns[6].button("🗑️", key=f"delete_{task_id}"):
                 client_management_db.delete_task_db(client['id'], project_id, task_id)
                 st.success(f"Task '{task_name}' deleted successfully!")
                 st.rerun()
