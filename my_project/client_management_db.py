@@ -71,14 +71,13 @@ def add_project_db(client_id, project_name):
     conn.close()
 
 
-def add_task_db(client_id, project_id, task_name, deadline, complete, notes, hours):
+def add_task_db(client_id, project_id, task_name, deadline, notes, hours):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO tasks (client_id, project_id, task_name, deadline, complete, notes, hours) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (client_id, project_id, task_name, deadline, complete, notes, hours)
-    )
+        INSERT INTO tasks (client_id, project_id, task_name, deadline, notes, hours, complete)
+        VALUES (?, ?, ?, ?, ?, ?, 0)
+    """, (client_id, project_id, task_name, deadline, notes, hours))
     conn.commit()
     conn.close()
 
@@ -95,25 +94,36 @@ def update_client_db(client_id, client_name, rate):
     conn.commit()
     conn.close()
 
-def update_project_db(project_id, project_name):
+def update_project_db(client_id, project_id, project_name):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE projects
         SET project_name = ?
-        WHERE id = ?  # Fixed: Correct column name `id`
-    """, (project_name, project_id))
+        WHERE id = ? AND client_id = ?
+    """, (project_name, project_id, client_id))
     conn.commit()
     conn.close()
 
-def update_task_db(task_id, task_name, deadline, complete, notes, hours):
+def update_task_status(task_id, complete):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE tasks
-        SET task_name = ?, deadline = ?, complete = ?, notes = ?, hours = ?
-        WHERE id = ?  # Fixed: Correct column name `id`
-    """, (task_name, deadline, complete, notes, hours, task_id))
+        SET complete = ?
+        WHERE id = ?
+    """, (complete, task_id))
+    conn.commit()
+    conn.close()
+
+def update_task_details(task_id, task_name, deadline, notes, hours):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE tasks
+        SET task_name = ?, deadline = ?, notes = ?, hours = ?
+        WHERE id = ?
+    """, (task_name, deadline, notes, hours, task_id))
     conn.commit()
     conn.close()
 
@@ -136,10 +146,13 @@ def delete_project_db(client_id, project_id):
     conn.commit()
     conn.close()
 
-def delete_task_db(client_id, project_id, task_id): #OVER EHRE, CHANGE IN THE MORE OPTIONS TAB AND DELETE IN TASK IN VIEWEING TAB 
+def delete_task(client_id, project_id, task_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM tasks WHERE client_id = ? AND project_id = ? AND id = ?", (client_id, project_id, task_id))
+    cursor.execute("""
+        DELETE FROM tasks
+        WHERE id = ? AND client_id = ? AND project_id = ?
+    """, (task_id, client_id, project_id))
     conn.commit()
     conn.close()
 
@@ -155,7 +168,7 @@ def archive_client(client_id):
 def archive_project(client_id, project_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE projects SET status = 'archived' WHERE client_id = ? AND id = ?", (client_id, project_id))  # Fixed column name `id`
+    cursor.execute("UPDATE projects SET status = 'archived' WHERE client_id = ? AND id = ?", (client_id, project_id)) 
     conn.commit()
     conn.close()
 
@@ -169,7 +182,7 @@ def unarchive_client(client_id):
 def unarchive_project(client_id, project_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE projects SET status = 'active' WHERE client_id = ? AND id = ?", (client_id, project_id))  # Fixed column name `id`
+    cursor.execute("UPDATE projects SET status = 'active' WHERE client_id = ? AND id = ?", (client_id, project_id)) 
     conn.commit()
     conn.close()
 
@@ -183,28 +196,30 @@ def get_all_clients():
     conn.close()
     return clients
 
-def get_all_archived_projects():
+def get_all_archived_clients():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT p.id AS project_id, p.project_name, c.id AS client_id, c.client_name
-        FROM projects p
-        JOIN clients c ON p.client_id = c.id
-        WHERE p.status = 'archived' AND c.status = 'archived'
-    """)
-    archived_projects = cursor.fetchall()
+    cursor.execute("SELECT * FROM clients WHERE status = 'archived'")
+    clients = cursor.fetchall()
+    conn.close()
+    return clients
+
+def get_archived_projects_by_client(client_id):
+    """Fetch all archived projects for a specific client."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = """
+        SELECT id, project_name
+        FROM projects
+        WHERE client_id = ? AND status = 'archived'
+    """
+    cursor.execute(query, (client_id,))
+    projects = cursor.fetchall()
     conn.close()
 
-    archived_projects_data = []
-    for project in archived_projects:
-        archived_projects_data.append({
-            "client_name": project[3],
-            "project_name": project[1],
-            "client_id": project[2],
-            "project_id": project[0]
-        })
-
-    return archived_projects_data
+    # Convert the results to a list of dictionaries for easier use
+    return [{"id": row[0], "project_name": row[1]} for row in projects]
+    
 
 def get_client_by_name(client_name):
     conn = get_db_connection()
@@ -221,7 +236,7 @@ def get_all_projects(client_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, project_name FROM projects WHERE client_id = ?
+        SELECT id, project_name FROM projects WHERE client_id = ? AND status != 'archived'
     """, (client_id,))
     projects = cursor.fetchall()
     conn.close()
