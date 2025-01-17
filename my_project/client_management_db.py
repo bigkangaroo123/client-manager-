@@ -142,7 +142,7 @@ def delete_project_db(client_id, project_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM tasks WHERE client_id = ? AND id = ?", (client_id, project_id))
-    cursor.execute("DELETE FROM projects WHERE client_id = ?", (client_id))
+    cursor.execute("DELETE FROM projects WHERE client_id = ?", (client_id,))
     conn.commit()
     conn.close()
 
