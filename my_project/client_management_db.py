@@ -116,14 +116,14 @@ def update_task_status(task_id, complete):
     conn.commit()
     conn.close()
 
-def update_task_details(task_id, task_name, deadline, notes, hours):
+def update_task_details(client_id, project_id, task_id, task_name, deadline, notes, hours):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE tasks
         SET task_name = ?, deadline = ?, notes = ?, hours = ?
-        WHERE id = ?
-    """, (task_name, deadline, notes, hours, task_id))
+        WHERE id = ? AND client_id = ? AND project_id = ?
+    """, (task_name, deadline, notes, hours, task_id, client_id, project_id))
     conn.commit()
     conn.close()
 
@@ -195,6 +195,14 @@ def get_all_clients():
     clients = cursor.fetchall()
     conn.close()
     return clients
+
+def get_client_by_id(client_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM clients WHERE id = ?", (client_id,))
+    client = cursor.fetchone()
+    conn.close()
+    return dict(client) if client else None
 
 def get_all_archived_clients():
     conn = get_db_connection()
@@ -273,4 +281,52 @@ def get_tasks_by_client_and_project(client_id, project_id):
 
     conn.close()
     return tasks
+
+def get_total_money_earned(client_id, project_id):
+    """
+    Calculates the total money earned for a specific client and project.
+
+    Args:
+        client_id (int): The ID of the client.
+        project_id (int): The ID of the project.
+
+    Returns:
+        float: Total money earned for the project.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Query to calculate the total hours for the given client and project
+    query = """
+    SELECT 
+        SUM(hours) 
+    FROM 
+        tasks
+    WHERE 
+        client_id = ? AND project_id = ?
+    """
+    cursor.execute(query, (client_id, project_id))
+    total_hours = cursor.fetchone()[0]  # Fetch the sum of hours
+
+    # If no tasks exist, SUM(hours) will return None; handle that case
+    total_hours = total_hours if total_hours is not None else 0.0
+
+    # Get the rate for the client
+    query_rate = """
+    SELECT 
+        rate 
+    FROM 
+        clients
+    WHERE 
+        id = ?
+    """
+    cursor.execute(query_rate, (client_id,))
+    client_rate = cursor.fetchone()[0]  # Fetch the client's rate
+
+    conn.close()
+
+    # Calculate total money earned
+    total_money = total_hours * client_rate
+    return total_money
+
     

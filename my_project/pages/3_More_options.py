@@ -68,7 +68,7 @@ def edit():
 
 # ---------- archiving / unarchiving -------------
 def archive():
-    if not client_management_db.get_all_clients():
+    if not client_management_db.get_all_clients() and not client_management_db.get_all_archived_clients():
         st.warning("No clients or projects available. Add some first!")
 
     st.subheader("Archive / Unarchive Options")
@@ -163,7 +163,7 @@ def archive():
 # ---------- deleting -------------
 def delete():
     if not client_management_db.get_all_clients():
-        st.error("No clients or projects available. Add some first!")
+        st.warning("No clients or projects available. Add some first!")
 
     action_type = st.radio("What would you like to delete?", ("Client", "Project"))
 
@@ -174,10 +174,13 @@ def delete():
         selected_client_name = st.selectbox("Select a client to delete", client_names)
 
         if st.button("Delete Client"):
-            selected_client = client_management_db.get_client_by_name(selected_client_name)
-            client_management_db.delete_client_db(selected_client['id'])
-            st.success(f"Client '{selected_client_name}' has been deleted!")
-            st.rerun()
+            if selected_client_name == None:
+                st.error("Please select a client to delete.")
+            else:
+                selected_client = client_management_db.get_client_by_name(selected_client_name)
+                client_management_db.delete_client_db(selected_client['id'])
+                st.success(f"Client '{selected_client_name}' has been deleted!")
+                st.rerun()
 
     # Deleting a Project
     elif action_type == "Project":
@@ -197,11 +200,14 @@ def delete():
         selected_project_name = st.selectbox("Select a project to delete", project_names)
 
         if st.button("Delete Project"):
-            project_id = None
-            for project in projects:
-                if project['project_name'] == selected_project_name:
-                    project_id = project['id']
-                    break
+            if selected_project_name == "None":
+                st.error("Please select a project to delete.")
+            else:
+                project_id = None
+                for project in projects:
+                    if project['project_name'] == selected_project_name:
+                        project_id = project['id']
+                        break
 
             client_management_db.delete_project_db(selected_client['id'], project_id)
             st.success(f"Project '{selected_project_name}' has been deleted!")

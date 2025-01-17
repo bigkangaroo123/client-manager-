@@ -1,30 +1,35 @@
 import streamlit as st
 import client_management_db
 import datetime
+
 client_management_db.init_db()
 
 st.title("📂 Your Clients")
 
-def display_tasks(client_id, project_id, project_name):
-    st.subheader(f"📋 Tasks for {project_name}")
-
-    tasks = client_management_db.get_tasks_by_client_and_project(client_id, project_id)
-
-    # Add Task Button
-    if st.button("➕ Add Task"):
-        with st.form("add_task_form"):
-            task_name = st.text_input("Task Name")
-            deadline = st.date_input("Deadline", min_value=datetime.date.today())
-            notes = st.text_area("Notes")
-            hours = st.number_input("Hours", step=0.5, min_value=0.0)
-            submitted = st.form_submit_button("Save Task")
-            if submitted:
+def add_task(client_id, project_id):
+    st.subheader("➕ Add a Task")
+    with st.form("add_task_form", clear_on_submit=True):
+        task_name = st.text_input("Task Name")
+        deadline = st.date_input("Deadline", min_value=datetime.date.today())
+        notes = st.text_area("Notes")
+        hours = st.number_input("Hours", step=0.5, min_value=0.0)
+        submitted = st.form_submit_button("Save Task")
+        if submitted:
+            if not task_name.strip():
+                st.error("Task Name is required!")
+            else:
+                # Add task to database if the above cases are false
                 client_management_db.add_task_db(client_id, project_id, task_name, deadline, notes, hours)
                 st.success("Task added successfully!")
+                st.rerun()
 
-    # Display Tasks
+def display_tasks(client_id, project_id):
+    tasks = client_management_db.get_tasks_by_client_and_project(client_id, project_id)
+
+    client_rate = client_management_db.get_client_by_id(client_id)['rate']
+
     if tasks:
-        st.markdown("### Existing Tasks")
+        st.markdown("### Your Tasks:")
         for task in tasks:
             task_id = task['id']
             task_complete = task['complete']
@@ -47,21 +52,34 @@ def display_tasks(client_id, project_id, project_name):
             columns[4].text(f"{task_hours} hours")
 
             # Edit Button
-            if columns[5].button("✏️ Edit", key=f"edit_{task_id}"):
+            if columns[5].button("✏️", key=f"edit_{task_id}"):
                 with st.form(f"edit_task_form_{task_id}"):
-                    new_task_name = st.text_input("Task Name", value=task_name)
-                    new_deadline = st.date_input("Deadline", value=datetime.datetime.strptime(task_deadline, '%Y-%m-%d').date())
-                    new_notes = st.text_area("Notes", value=task_notes)
-                    new_hours = st.number_input("Hours", value=task_hours, step=0.5, min_value=0.0)
+                    new_task_name = st.text_input("New Task Name", value=task_name)
+                    new_deadline = st.date_input("New Task Deadline", value=datetime.datetime.strptime(task_deadline, '%Y-%m-%d').date())
+                    new_notes = st.text_area("New Task Notes", value=task_notes)
+                    new_hours = st.number_input("New Task Hours", value=task_hours, step=0.5, min_value=0.0)
                     edited = st.form_submit_button("Save Changes")
+
                     if edited:
-                        client_management_db.update_task_details(task_id, new_task_name, new_deadline, new_notes, new_hours)
-                        st.success(f"Task '{new_task_name}' updated successfully!")
+                        # Debugging logs
+                        st.write("Captured Values:")
+                        st.write(f"New Task Name: {new_task_name}")
+                        st.write(f"New Deadline: {new_deadline}")
+                        st.write(f"New Notes: {new_notes}")
+                        st.write(f"New Hours: {new_hours}")
+
 
             # Delete Button
-            if columns[6].button("🗑️ Delete", key=f"delete_{task_id}"):
+            if columns[6].button("🗑️", key=f"delete_{task_id}"):
                 client_management_db.delete_task(client_id, project_id, task_id)
                 st.success(f"Task '{task_name}' deleted successfully!")
+                st.rerun()
+
+        total_earnings = client_management_db.get_total_money_earned(client_id, project_id)
+        st.markdown(f"**💰 Total Earnings for this project:** ${total_earnings:.2f}")
+
+    else:
+        st.info("No tasks found for this project.")
 
 # ----------Main Viewing Menu -----------------
 clients = client_management_db.get_all_clients()
@@ -88,4 +106,7 @@ else:
 
             if selected_project_name:
                 selected_project_id = next(project['id'] for project in project_options if project['name'] == selected_project_name)
-                display_tasks(selected_client['id'], selected_project_id, selected_project_name)
+
+                # Display both Add Task and Display Tasks functions
+                add_task(selected_client['id'], selected_project_id)
+                display_tasks(selected_client['id'], selected_project_id)
