@@ -60,6 +60,7 @@ def edit():
 
                 if st.button(f"Save Changes to Project '{project_name}'"):
                     if new_project_name and new_project_name != project_name:
+                        #this "next" method is an easier way to find the project id based on the project's name
                         project_id = next(project['id'] for project in projects if project['project_name'] == project_name)
                         client_management_db.update_project_db(selected_client['id'], project_id, new_project_name)
                         st.rerun()
@@ -104,7 +105,11 @@ def archive():
                     project_name = st.selectbox("Select a project to archive", project_names)
 
                     if st.button(f"Archive Project '{project_name}'"):
-                        project_id = next(project['id'] for project in projects if project['project_name'] == project_name)
+                        project_id = None
+                        for project in projects:
+                            if project['project_name'] == project_name:
+                                project_id = project['id']
+                                break
                         client_management_db.archive_project(selected_client['id'], project_id)
                         st.success(f"Project '{project_name}' has been archived!")
 
@@ -152,9 +157,11 @@ def archive():
                         selected_project_name = st.selectbox("Select a project to unarchive", project_options)
 
                         # Find the selected project ID
-                        selected_project = next(
-                            project for project in archived_projects if project['project_name'] == selected_project_name
-                        )
+                        selected_project = None 
+                        for project in archived_projects:
+                            if project['project_name'] == selected_project_name:
+                                selected_project = project
+                                break
 
                         if st.button(f"Unarchive Project '{selected_project_name}'"):
                             client_management_db.unarchive_project(client_id, selected_project['id'])

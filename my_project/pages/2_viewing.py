@@ -113,7 +113,11 @@ else:
             selected_project_name = st.selectbox("Select a project", project_names)
 
             if selected_project_name:
-                selected_project_id = next(project['id'] for project in project_options if project['name'] == selected_project_name)
+                selected_project_id = None
+                for project in project_options:
+                    if project['name'] == selected_project_name:
+                        selected_project_id = project['id']
+                        break
 
                 # Display both Add Task and Display Tasks functions
                 add_task(selected_client['id'], selected_project_id)
