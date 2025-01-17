@@ -13,10 +13,10 @@ add_client_button = st.button("Add Client")
 if add_client_button:
     if not client_name:
         st.error("Please input the client's name to proceed...")
-    elif client_management_db.get_client_by_name(client_name):
-        st.error("Please input a client that does not already exist")
     elif not billing_rate:
         st.error("Please also input the billing rate to proceed...")
+    elif client_management_db.get_client_by_name(client_name):
+        st.error("Please input a client that does not already exist")
     elif not billing_rate.isdigit():
         st.error("Please enter a valid positive integer for the billing rate.")
     else:
