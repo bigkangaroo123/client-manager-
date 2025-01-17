@@ -61,12 +61,20 @@ def display_tasks(client_id, project_id):
                     edited = st.form_submit_button("Save Changes")
 
                     if edited:
-                        # Debugging logs
-                        st.write("Captured Values:")
-                        st.write(f"New Task Name: {new_task_name}")
-                        st.write(f"New Deadline: {new_deadline}")
-                        st.write(f"New Notes: {new_notes}")
-                        st.write(f"New Hours: {new_hours}")
+                        try:
+                            client_management_db.update_task_details(
+                                client_id=client_id,
+                                project_id=project_id,
+                                task_id=task_id,
+                                task_name=new_task_name,
+                                deadline=new_deadline,
+                                notes=new_notes,
+                                hours=new_hours
+                            )
+                            st.success(f"Task '{new_task_name}' updated successfully!")
+                            st.rerun()  # Refresh the app to show updated values
+                        except Exception as e: #the try and except methods help with error handling
+                            st.error(f"Failed to update task: {str(e)}")
 
 
             # Delete Button
