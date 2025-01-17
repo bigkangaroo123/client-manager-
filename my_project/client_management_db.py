@@ -122,8 +122,8 @@ def update_task_details(client_id, project_id, task_id, task_name, deadline, not
     cursor.execute("""
         UPDATE tasks
         SET task_name = ?, deadline = ?, notes = ?, hours = ?
-        WHERE id = ? AND client_id = ? AND project_id = ?
-    """, (task_name, deadline, notes, hours, task_id, client_id, project_id))
+        WHERE id = ? AND project_id = ? AND client_id = ?
+    """, (task_name, deadline, notes, hours, task_id, project_id, client_id))
     conn.commit()
     conn.close()
 
