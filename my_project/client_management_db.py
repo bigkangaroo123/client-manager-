@@ -36,9 +36,9 @@ def init_db():
         deadline DATE,
         notes TEXT,
         complete BOOLEAN DEFAULT 0,
-        hours REAL NOT NULL,
-        FOREIGN KEY (client_id) REFERENCES clients(id),
-        FOREIGN KEY (project_id) REFERENCES projects(id)
+        hours REAL,
+        FOREIGN KEY (project_id) REFERENCES projects(id),
+        FOREIGN KEY (client_id) REFERENCES clients(id)
     )
     """)
 
