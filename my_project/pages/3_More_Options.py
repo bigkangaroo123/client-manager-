@@ -78,7 +78,7 @@ def archive():
 
     if action_type == "Archive":
         archive_type = st.radio("What would you like to archive?", ("Client", "Project"))
-
+        #archiving client:
         if archive_type == "Client":
             client_names = [client['client_name'] for client in client_management_db.get_all_clients()]
             selected_client_name = st.selectbox("Select a client to archive", client_names)
@@ -89,7 +89,7 @@ def archive():
                     if st.button(f"Archive Client '{selected_client_name}'"):
                         client_management_db.archive_client(selected_client['id'])
                         st.success(f"Client '{selected_client_name}' has been archived!")
-
+        #archiving project:
         elif archive_type == "Project":
             client_names = [client['client_name'] for client in client_management_db.get_all_clients()]
             selected_client_name = st.selectbox("Select a client", client_names)
