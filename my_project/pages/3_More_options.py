@@ -64,7 +64,7 @@ def edit():
                         client_management_db.update_project_db(selected_client['id'], project_id, new_project_name)
                         st.rerun()
                     else:
-                        st.error("Please enter a valid and different project name.")
+                        st.error("Please enter a different project name.")
 
 # ---------- archiving / unarchiving -------------
 def archive():
