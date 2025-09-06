@@ -1,7 +1,6 @@
 import streamlit as st
-import client_management_db
+from my_project import client_management_db
 import datetime
-
 client_management_db.init_db()
 
 st.title("📂 Your Clients")
